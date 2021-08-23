@@ -1,0 +1,45 @@
+{
+    "path": "MSMQ_sb/run1/header.json",
+
+    "target" : "Average Waiting Time (global)",
+
+    "id" : 1,
+
+    "initial_seed" : 54321,
+
+    "arrivals_stream": 0,
+
+    "services_stream": 1,
+  
+    "observ_period": {
+        "start" : 0.0,
+        "stop" : 1000.0
+    },
+
+    "avg_interarrivals" : 3,
+
+    "servers" : 3,
+
+    "jobs" : 650,
+  
+    "avg_values": {
+        "Average Waiting Time (global)" : 0.0,
+        "Average Waiting Time (queue 1)": 0.0,
+        "Average Delay (queue 1)": 0.0,
+        "Average Waiting Time (queue 2)": 0.0,
+        "Average Delay (queue 2)": 0.0,
+        "Average Waiting Time (queue 3)": 0.0,
+        "Average Delay (queue 3)": 0.0
+    },
+
+
+    "mean_conditional_slowdown" : {
+        "(1.24)":0.0,
+        "(2.65)":0.0,
+        "(4.42)":0.0,
+        "(8.26)":0.0
+    },
+
+    "track_path" : "trackpath.dat"
+
+  }
