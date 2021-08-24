@@ -6,6 +6,9 @@ from rvms import idfStudent
 
 
 batchMeanTemplate = {
+  "interarrival" : 0,
+  "servers" : 0,
+  "seed" : 0,
   "GLOBAL AVG WAIT" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
   "GLOBAL AVG DELAY" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
   "GLOBAL AVG NUMBER":{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
@@ -26,6 +29,18 @@ batchMeanTemplate = {
   "UTILIZATION6" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}
 }
 
+
+def analyticalResults( interarrivals ):
+
+  LAMBDA = 1/interarrivals
+
+  utilization =  ( LAMBDA / 3 ) * 4.42 
+
+  delay = ( ( LAMBDA / 6 ) * 32.2791123 ) / ( 1 - utilization )
+
+  wait = delay + 4.42
+
+  return delay, wait, utilization
 
 
 def estimate( valuesArray ):
@@ -68,10 +83,15 @@ def batchMeans( path, batchDictionary, model ):
     # This technique is used to compute Steady-State statistics 
     # ( "infinite horizon" point and interval estimations ).
     # -----------------------------------------------------------
+    global batchMeanTemplate
 
     SERVERS = int ( batchDictionary["servers"] )
 
     B = batchDictionary["batch_size"]
+
+    batchMeanTemplate["interarrival"] = batchDictionary["interarrivals"]
+    batchMeanTemplate["seed"] = batchDictionary["seed"]
+    batchMeanTemplate["servers"] = batchDictionary["servers"]
 
     avg_wait_global = batchDictionary["global"]["avg_wait"][1:]
     avg_delay_global = batchDictionary["global"]["avg_delay"][1:]
@@ -91,6 +111,10 @@ def batchMeans( path, batchDictionary, model ):
     with open( path + "/steadystate.json" , "a") as results:
 
         res = batchMeanTemplate
+
+        res["interarrival"] = batchDictionary["interarrivals"]
+        res["seed"] = batchDictionary["seed"]
+        res["servers"] = batchDictionary["servers"]
 
         mean, stdev, half_interval = estimate( avg_wait_global )
         res["GLOBAL AVG WAIT"]["mean"] = mean
@@ -139,9 +163,16 @@ def batchMeans( path, batchDictionary, model ):
 
 def steadyStatePlotter( path, model ):
 
+  global batchMeanTemplate
+
+  delay, wait, utilization = analyticalResults( batchMeanTemplate["interarrival"] )
+
   directories = os.listdir( path )
 
   for t in batchMeanTemplate.keys():
+
+    if t in ["interarrival", "servers", "seed"]:
+      continue
 
     headerbuilder = 0
 
@@ -195,8 +226,29 @@ def steadyStatePlotter( path, model ):
             values.append( data[t]["mean"] )
             errors.append( data[t]["half_confidence_interval"] )
     
+    
+
     x = [ i for i in range( len(values) ) ]
     plt.errorbar( x, values, errors, fmt = '.' )
+
+    if t.startswith("GLOBAL AVG WAIT"):
+
+      l = [ wait for i in range( len(values) ) ]
+      truevalue = np.array( l )
+      plt.plot( truevalue )
+
+    elif t.startswith("GLOBAL AVG DELAY"):
+
+      l = [ delay for i in range( len(values) ) ]
+      truevalue = np.array( l )
+      plt.plot( truevalue )
+
+    elif t.startswith("UTILIZATION"):
+
+      l = [ utilization for i in range( len(values) ) ]
+      truevalue = np.array( l )
+      plt.plot( truevalue )
+
     plt.title( title )
     plt.savefig( path + "/" + t + ".png" )
     plt.legend( seeds )

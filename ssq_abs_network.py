@@ -17,12 +17,14 @@ from rngs import getSeed, plantSeeds
 from serviceCalls import GetServicePareto, GetServiceUniform
 from arrivalCalls import GetArrivalExpo
 import sys, os, json
+from rngs import random
 
 START =      0.0                                                      # initial time of the observation period      [minutes]         
 STOP  =    840.0                                                      # terminal (close the door) time              [minutes]
 replicas = int(sys.argv[1])
 
 NODES = 3                                                             # number of nodes (subsystems) in the network
+turn = 0
 
 LAMBDA = 0.0
 SIMULATION_SEED = 0
@@ -89,6 +91,23 @@ def selectNode( nodes ):
 
   return (s)
 
+def selectNodeUniform( nodes ):
+# -------------------------------------------------
+# * return the index of the next node to be used.
+# * -----------------------------------------------
+  r = random()
+  s = 0
+
+  if r <=0.33:
+    s = 0
+  else:
+    if r <= 0.66:
+      s = 1
+    else:
+      s = 2
+
+  return s
+
 
 def NextEvent(events):
 # ---------------------------------------
@@ -127,7 +146,7 @@ def NextBatch():
     delay[j] = areas[j].queue / nodes[j].index
     queue_population[j] = areas[j].queue / t.current
 
-  global_wait = area / index
+  global_wait = area / b
   global_number = area / t.current
 
   d = 0.0
@@ -151,15 +170,14 @@ def NextBatch():
   batchmean["c2"]["avg_number"].append(queue_population[1])
   batchmean["c3"]["avg_number"].append(queue_population[2])
 
-  batchmean["mean_conditional_slowdown"]["(1.24)"].append( 1 + (area/index) / 1.24 )
-  batchmean["mean_conditional_slowdown"]["(2.65)"].append( 1 + (area/index) / 2.65 )
-  batchmean["mean_conditional_slowdown"]["(4.42)"].append( 1 + (area/index) / 4.42 ) 
-  batchmean["mean_conditional_slowdown"]["(8.26)"].append( 1 + (area/index) / 8.26 )
+  batchmean["mean_conditional_slowdown"]["(1.24)"].append( 1 + (area/b)  / 1.24 )
+  batchmean["mean_conditional_slowdown"]["(2.65)"].append( 1 + (area/b) / 2.65 )
+  batchmean["mean_conditional_slowdown"]["(4.42)"].append( 1 + (area/b) / 4.42 ) 
+  batchmean["mean_conditional_slowdown"]["(8.26)"].append( 1 + (area/b) / 8.26 )
 
   for s in range( 1,  NODES + 1 ):
     batchmean["avg_utilization" + str(s) ].append( sum[s].service / (t.current-START) )
 
-  index = 0
   area = 0
 
   for j in range ( 0, NODES ):
@@ -288,9 +306,11 @@ print(" Infinite Horizon ( Steady-State Statistics - Batch Means)  .......... 1"
 choice = int( input("\n Please, type your choice here: ") )
 
 b = 512
+k = 0
 
 if choice == 1:
   b = int( input("\n Type a size for the batch : ") )
+  k = int( input("\n Type a number of batches : "))
 
 f = open("MG1_abs_network/id.txt", "r")
 old_id = f.readline()
@@ -374,13 +394,17 @@ for i in range( 0, replicas ):
   period = 0
   disp = 0
   mod = 30
+  old_index = 0
+  batch_index = 0
 
   while ( ( events[0].x != 0 ) or ( number != 0 ) ):
-        
+
     # ---These commands are used to produce the series of output statistics at runtime--------------------------------------------
-    if ( index == b and choice == 1 ) :
-      NextBatch()
-      batch_index += 1
+    if ( index % b == 0 and choice == 1  and index != 0 ) :
+      if not ( batch_index == k or old_index == index ) :  
+        NextBatch()
+        batch_index += 1
+        old_index = index
     
     if ( choice == 0 and t.current >= 120 and period == 0):
       period += 1
@@ -419,7 +443,7 @@ for i in range( 0, replicas ):
 
     if ( e == 0 ):    
       # process an ARRIVAL
-      events[0].node_position = selectNode( nodes )                        
+      events[0].node_position = selectNodeUniform( nodes )                        
       nodes[ events[0].node_position ].number += 1
       number += 1
 
