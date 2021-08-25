@@ -258,7 +258,10 @@ def steadyStatePlotter( path, model ):
     
     plt.legend( [ "Analytical Result: " + realvalue, "Initial Seed: "+ str(seeds[0])] )
 
-    plt.ylim(0, 20)
+    if t.startswith("UTILIZATION"):
+      plt.ylim(0,1)
+    else:
+      plt.ylim(0, 20)
 
     plt.savefig( path + "/" + t + ".png" )
 
