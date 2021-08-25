@@ -140,19 +140,25 @@ def NextBatch():
   delay = [ 0.0 for i in range(NODES) ]
   queue_population = [ 0.0 for i in range(NODES) ]
 
+
   for j in range ( 0, NODES ):
 
     wait[j] = areas[j].node / nodes[j].index
     delay[j] = areas[j].queue / nodes[j].index
     queue_population[j] = areas[j].queue / t.current
 
+
   global_wait = area / b
   global_number = area / t.current
 
   d = 0.0
+
   for j in range( 0, NODES ):
-    d += areas[j].queue / nodes[j].index
-  global_delay = d / NODES
+     percentage = nodes[j].index / b
+     if nodes[j].index != 0:
+      d += ( areas[j].queue / nodes[j].index ) * percentage
+
+  global_delay = d 
 
   batchmean["global"]["avg_wait"].append(global_wait)
   batchmean["global"]["avg_delay"].append(global_delay)

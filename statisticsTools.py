@@ -231,27 +231,38 @@ def steadyStatePlotter( path, model ):
     x = [ i for i in range( len(values) ) ]
     plt.errorbar( x, values, errors, fmt = '.' )
 
+    realvalue = ""
+
     if t.startswith("GLOBAL AVG WAIT"):
 
       l = [ wait for i in range( len(values) ) ]
+      realvalue = "{0:6.2f}".format( wait )
       truevalue = np.array( l )
       plt.plot( truevalue )
 
     elif t.startswith("GLOBAL AVG DELAY"):
 
       l = [ delay for i in range( len(values) ) ]
+      realvalue = "{0:6.2f}".format( delay )
       truevalue = np.array( l )
       plt.plot( truevalue )
 
     elif t.startswith("UTILIZATION"):
 
       l = [ utilization for i in range( len(values) ) ]
+      realvalue ="{0:6.2f}".format( utilization )
       truevalue = np.array( l )
       plt.plot( truevalue )
 
-    plt.title( title )
+    plt.title( title, fontsize = 10 )
+    
+    plt.legend( [ "Analytical Result: " + realvalue, "Initial Seed: "+ str(seeds[0])] )
+
+    plt.ylim(0, 20)
+
     plt.savefig( path + "/" + t + ".png" )
-    plt.legend( seeds )
+
+
     plt.close()
 
 
