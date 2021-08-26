@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import os, sys, json
 from math import sqrt, floor
 from rvms import idfStudent
+from pprint import pprint
 
 
 batchMeanTemplate = {
@@ -302,73 +303,6 @@ def finiteHorizon(path, finiteHorizonDictionary, model):
     transientTemplate["seed"] = finiteHorizonDictionary["seed"]
     transientTemplate["servers"] = finiteHorizonDictionary["servers"]
 
-    avg_wait_global = finiteHorizonDictionary["global"]["avg_wait"][1:]
-    avg_delay_global = finiteHorizonDictionary["global"]["avg_delay"][1:]
-    avg_number_global = finiteHorizonDictionary["global"]["avg_number"][1:]
-
-    avg_utilizations = []
-
-    for j in range(SERVERS):
-        avg_utilizations.append(finiteHorizonDictionary["avg_utilization" + str(j + 1)][1:])
-
-    if model == 0:
-        avg_wait_queues = [finiteHorizonDictionary["c1"]["avg_wait"][1:], finiteHorizonDictionary["c2"]["avg_wait"][1:],
-                           finiteHorizonDictionary["c3"]["avg_wait"][1:]]
-        avg_delay_queues = [finiteHorizonDictionary["c1"]["avg_delay"][1:], finiteHorizonDictionary["c2"]["avg_delay"][1:],
-                            finiteHorizonDictionary["c3"]["avg_delay"][1:]]
-        avg_number_queues = [finiteHorizonDictionary["c1"]["avg_number"][1:], finiteHorizonDictionary["c2"]["avg_number"][1:],
-                             finiteHorizonDictionary["c3"]["avg_number"][1:]]
-
-    with open(path + "/finiteHorizon.json", "a") as results:
-
-        res = transientTemplate
-
-        res["interarrival"] = finiteHorizonDictionary["interarrivals"]
-        res["seed"] = finiteHorizonDictionary["seed"]
-        res["servers"] = finiteHorizonDictionary["servers"]
-
-        mean, stdev, half_interval = estimate(avg_wait_global)
-        res["GLOBAL AVG WAIT"]["mean"] = mean
-        res["GLOBAL AVG WAIT"]["stdev"] = stdev
-        res["GLOBAL AVG WAIT"]["half_confidence_interval"] = half_interval
-
-        mean, stdev, half_interval = estimate(avg_delay_global)
-        res["GLOBAL AVG DELAY"]["mean"] = mean
-        res["GLOBAL AVG DELAY"]["stdev"] = stdev
-        res["GLOBAL AVG DELAY"]["half_confidence_interval"] = half_interval
-
-        mean, stdev, half_interval = estimate(avg_number_global)
-        res["GLOBAL AVG NUMBER"]["mean"] = mean
-        res["GLOBAL AVG NUMBER"]["stdev"] = stdev
-        res["GLOBAL AVG NUMBER"]["half_confidence_interval"] = half_interval
-
-        if model == 0:
-            for j in range(1, 4):
-                mean, stdev, half_interval = estimate(avg_wait_queues[j - 1])
-                res["QUEUE" + str(j) + " AVG WAIT"]["mean"] = mean
-                res["QUEUE" + str(j) + " AVG WAIT"]["stdev"] = stdev
-                res["QUEUE" + str(j) + " AVG WAIT"]["half_confidence_interval"] = half_interval
-
-                mean, stdev, half_interval = estimate(avg_delay_queues[j - 1])
-                res["QUEUE" + str(j) + " AVG DELAY"]["mean"] = mean
-                res["QUEUE" + str(j) + " AVG DELAY"]["stdev"] = stdev
-                res["QUEUE" + str(j) + " AVG DELAY"]["half_confidence_interval"] = half_interval
-
-                mean, stdev, half_interval = estimate(avg_number_queues[j - 1])
-                res["QUEUE" + str(j) + " AVG NUMBER"]["mean"] = mean
-                res["QUEUE" + str(j) + " AVG NUMBER"]["stdev"] = stdev
-                res["QUEUE" + str(j) + " AVG NUMBER"]["half_confidence_interval"] = half_interval
-
-        for j in range(1, SERVERS + 1):
-            mean, stdev, half_interval = estimate(avg_utilizations[j - 1])
-            res["UTILIZATION" + str(j)]["mean"] = mean
-            res["UTILIZATION" + str(j)]["stdev"] = stdev
-            res["UTILIZATION" + str(j)]["half_confidence_interval"] = half_interval
-
-        json.dump(res, results, indent=4)
-
-    results.close()
-
 
 def steadyStatePlotter( path, model ):
 
@@ -498,6 +432,44 @@ def transientPlotter(path, model, transientList):
 
     directories = os.listdir(path)
 
+    organizer = {
+        "avg_utilization1": [],
+        "avg_utilization2": [],
+        "avg_utilization3": [],
+        "avg_utilization4": [],
+        "avg_utilization5": [],
+        "avg_utilization6": [],
+        "global": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+        "c1": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+        "c2": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+        "c3": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+        "mean_conditional_slowdown": {"(1.24)": [], "(2.65)": [], "(4.42)": [], "(8.26)": []}
+    }
+
+    for t in organizer.keys():
+        for i in range(0, len(transientList[0]['acquisition_time'])):
+            if t not in ['global', 'c1', 'c2', 'c3', 'mean_conditional_slowdown']:
+                organizer[t].append([])
+            else:
+                for t2 in organizer[t].keys():
+                    for i in range(0, len(transientList[0]['acquisition_time'])):
+                        organizer[t][t2].append([])
+
+    for transientStats in transientList:
+        for t in transientStats.keys():
+            if t in ['seed', 'arrival_stream', 'service_stream', 'observation_period', 'interarrivals', 'k',
+                     'batch_size', 'servers', 'acquisition_time']:
+                continue
+
+            if t not in ['global', 'c1', 'c2', 'c3', 'mean_conditional_slowdown']:
+                for i in range(0, len(transientStats[t])):
+                    organizer[t][i].append(transientStats[t][i])
+            else:
+                for t2 in organizer[t].keys():
+                    for i in range(0, len(transientStats[t][t2])):
+                        organizer[t][t2][i].append(transientStats[t][t2][i])
+
+    pprint(organizer)
 
     for t in transientTemplate.keys():
 
