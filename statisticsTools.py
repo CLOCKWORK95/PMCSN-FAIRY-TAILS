@@ -187,8 +187,8 @@ def batchMeans( path, batchDictionary, model ):
 
 def finiteHorizon(path, finiteHorizonDictionary, model):
     # -----------------------------------------------------------
-    # This technique is used to compute Steady-State statistics
-    # ( "infinite horizon" point and interval estimations ).
+    # This technique is used to compute Transient statistics
+    # ( "finite horizon" point and interval estimations ).
     # -----------------------------------------------------------
     global transientTemplate
 
@@ -217,7 +217,7 @@ def finiteHorizon(path, finiteHorizonDictionary, model):
 
     with open(path + "/finiteHorizon.json", "a") as results:
 
-        res = batchMeanTemplate
+        res = transientTemplate
 
         res["interarrival"] = finiteHorizonDictionary["interarrivals"]
         res["seed"] = finiteHorizonDictionary["seed"]
@@ -385,12 +385,13 @@ def steadyStatePlotter( path, model ):
     plt.close()
 
 
-def transientPlotter(path, model):
+def transientPlotter(path, model, transientList):
     global transientTemplate
 
     delay, wait, utilization = analyticalResults(transientTemplate["interarrival"])
 
     directories = os.listdir(path)
+
 
     for t in transientTemplate.keys():
 
