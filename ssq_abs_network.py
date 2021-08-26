@@ -53,9 +53,9 @@ batchmean = {
   "c1" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : [] },
   "c2" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : []  },
   "c3" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : []  },
-  "c4" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : []  },
-  "c5" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : []  },
-  "c6" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : []  },
+  # "c4" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : []  },
+  # "c5" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : []  },
+  # "c6" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : []  },
   "mean_conditional_slowdown" : { "(1.24)": [] , "(2.65)": [] , "(4.42)": [] , "(8.26)": []  }
 }
 
@@ -482,7 +482,7 @@ for i in range( 0, replicas ):
       #resetTransientStatistics()
 
     disp += 1
-    if ( choice == 0 and index % (2 * TRANSIENT_MULTIPLIER) == 0 and index != 0 ):
+    if ( choice == 0 and index % (round(1.5 * TRANSIENT_MULTIPLIER)) == 0 and index != 0 ):
       transientStats()
       TRANSIENT_MULTIPLIER = TRANSIENT_MULTIPLIER * 2
     #------------------------------------------------------------------------------------------------------------------------------
