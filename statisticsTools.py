@@ -233,7 +233,8 @@ def steadyStatePlotter( path, model ):
 
     realvalue = ""
 
-    if t.startswith("GLOBAL AVG WAIT"):
+    '''
+     if t.startswith("GLOBAL AVG WAIT"):
 
       l = [ wait for i in range( len(values) ) ]
       realvalue = "{0:6.2f}".format( wait )
@@ -252,16 +253,26 @@ def steadyStatePlotter( path, model ):
       l = [ utilization for i in range( len(values) ) ]
       realvalue ="{0:6.2f}".format( utilization )
       truevalue = np.array( l )
-      plt.plot( truevalue )
+      plt.plot( truevalue ) '''
 
     plt.title( title, fontsize = 10 )
     
-    plt.legend( [ "Analytical Result: " + realvalue, "Initial Seed: "+ str(seeds[0])] )
+    #plt.legend( [ "Analytical Result: " + realvalue, "Initial Seed: "+ str(seeds[0])] )
 
-    if t.startswith("UTILIZATION"):
-      plt.ylim(0,1)
+    if model == 1:
+      # CLASSIC MODEL
+      if t.startswith("UTILIZATION"):
+        plt.ylim(0,1)
+      #else:
+        #plt.ylim(0, 20)
     else:
-      plt.ylim(0, 20)
+      # SIZE BASED MODEL
+      if t.startswith("UTILIZATION"):
+        plt.ylim(0,1)
+      #else:
+        #plt.ylim(0, 14)
+
+
 
     plt.savefig( path + "/" + t + ".png" )
 

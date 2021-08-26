@@ -449,7 +449,7 @@ for i in range( 0, replicas ):
 
     if ( e == 0 ):    
       # process an ARRIVAL
-      events[0].node_position = selectNodeUniform( nodes )                        
+      events[0].node_position = selectNode( nodes )                        
       nodes[ events[0].node_position ].number += 1
       number += 1
 
