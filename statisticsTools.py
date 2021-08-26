@@ -137,22 +137,22 @@ def batchMeans( path, batchDictionary, model ):
       avg_delay_queues = []
       avg_number_queues = []
 
-      if SERVERS >= 1 : 
+      if SERVERS >= 1 :
         avg_wait_queues.append( batchDictionary["c1"]["avg_wait"][1:] )
         avg_delay_queues.append( batchDictionary["c1"]["avg_delay"][1:] )
         avg_number_queues.append( batchDictionary["c1"]["avg_number"][1:] )
-      
-      if SERVERS >= 2 : 
+
+      if SERVERS >= 2 :
         avg_wait_queues.append( batchDictionary["c2"]["avg_wait"][1:] )
         avg_delay_queues.append( batchDictionary["c2"]["avg_delay"][1:] )
         avg_number_queues.append( batchDictionary["c2"]["avg_number"][1:] )
 
-      if SERVERS >= 3 : 
+      if SERVERS >= 3 :
         avg_wait_queues.append( batchDictionary["c3"]["avg_wait"][1:] )
         avg_delay_queues.append( batchDictionary["c3"]["avg_delay"][1:] )
         avg_number_queues.append( batchDictionary["c3"]["avg_number"][1:] )
 
-      
+
 
     with open( path + "/steadystate.json" , "a") as results:
 
@@ -177,7 +177,7 @@ def batchMeans( path, batchDictionary, model ):
         res["GLOBAL AVG NUMBER"]["stdev"] = stdev
         res["GLOBAL AVG NUMBER"]["half_confidence_interval"] = half_interval
 
-        
+
         for j in range( 1, 4 ):
           mean, stdev, half_interval = estimate( avg_wait_queues[j-1] )
           res["QUEUE" + str(j) + " AVG WAIT"]["mean"] = mean
@@ -188,7 +188,7 @@ def batchMeans( path, batchDictionary, model ):
           res["QUEUE" + str(j) + " AVG DELAY"]["mean"] = mean
           res["QUEUE" + str(j) + " AVG DELAY"]["stdev"] = stdev
           res["QUEUE" + str(j) + " AVG DELAY"]["half_confidence_interval"] = half_interval
-          
+
           mean, stdev, half_interval = estimate( avg_number_queues[j-1] )
           res["QUEUE" + str(j) + " AVG NUMBER"]["mean"] = mean
           res["QUEUE" + str(j) + " AVG NUMBER"]["stdev"] = stdev
@@ -201,7 +201,7 @@ def batchMeans( path, batchDictionary, model ):
           res["UTILIZATION"+ str(j) ]["mean"] = mean
           res["UTILIZATION"+ str(j) ]["stdev"] = stdev
           res["UTILIZATION"+ str(j) ]["half_confidence_interval"] = half_interval
-        
+
         json.dump( res, results, indent = 4  )
 
     results.close()
@@ -240,6 +240,88 @@ def finiteHorizon(path, finiteHorizonDictionary, model):
     with open(path + "/finiteHorizon.json", "a") as results:
 
         res = transientTemplate
+
+        res["interarrival"] = finiteHorizonDictionary["interarrivals"]
+        res["seed"] = finiteHorizonDictionary["seed"]
+        res["servers"] = finiteHorizonDictionary["servers"]
+
+        mean, stdev, half_interval = estimate(avg_wait_global)
+        res["GLOBAL AVG WAIT"]["mean"] = mean
+        res["GLOBAL AVG WAIT"]["stdev"] = stdev
+        res["GLOBAL AVG WAIT"]["half_confidence_interval"] = half_interval
+
+        mean, stdev, half_interval = estimate(avg_delay_global)
+        res["GLOBAL AVG DELAY"]["mean"] = mean
+        res["GLOBAL AVG DELAY"]["stdev"] = stdev
+        res["GLOBAL AVG DELAY"]["half_confidence_interval"] = half_interval
+
+        mean, stdev, half_interval = estimate(avg_number_global)
+        res["GLOBAL AVG NUMBER"]["mean"] = mean
+        res["GLOBAL AVG NUMBER"]["stdev"] = stdev
+        res["GLOBAL AVG NUMBER"]["half_confidence_interval"] = half_interval
+
+        if model == 0:
+            for j in range(1, 4):
+                mean, stdev, half_interval = estimate(avg_wait_queues[j - 1])
+                res["QUEUE" + str(j) + " AVG WAIT"]["mean"] = mean
+                res["QUEUE" + str(j) + " AVG WAIT"]["stdev"] = stdev
+                res["QUEUE" + str(j) + " AVG WAIT"]["half_confidence_interval"] = half_interval
+
+                mean, stdev, half_interval = estimate(avg_delay_queues[j - 1])
+                res["QUEUE" + str(j) + " AVG DELAY"]["mean"] = mean
+                res["QUEUE" + str(j) + " AVG DELAY"]["stdev"] = stdev
+                res["QUEUE" + str(j) + " AVG DELAY"]["half_confidence_interval"] = half_interval
+
+                mean, stdev, half_interval = estimate(avg_number_queues[j - 1])
+                res["QUEUE" + str(j) + " AVG NUMBER"]["mean"] = mean
+                res["QUEUE" + str(j) + " AVG NUMBER"]["stdev"] = stdev
+                res["QUEUE" + str(j) + " AVG NUMBER"]["half_confidence_interval"] = half_interval
+
+        for j in range( 1, SERVERS + 1 ):
+
+          mean, stdev, half_interval = estimate( avg_utilizations[j-1] )
+          res["UTILIZATION"+ str(j) ]["mean"] = mean
+          res["UTILIZATION"+ str(j) ]["stdev"] = stdev
+          res["UTILIZATION"+ str(j) ]["half_confidence_interval"] = half_interval
+        
+        json.dump( res, results, indent = 4  )
+
+    results.close()
+
+
+def finiteHorizon(path, finiteHorizonDictionary, model):
+    # -----------------------------------------------------------
+    # This technique is used to compute Steady-State statistics
+    # ( "infinite horizon" point and interval estimations ).
+    # -----------------------------------------------------------
+    global transientTemplate
+
+    SERVERS = int(finiteHorizonDictionary["servers"])
+
+    transientTemplate["interarrival"] = finiteHorizonDictionary["interarrivals"]
+    transientTemplate["seed"] = finiteHorizonDictionary["seed"]
+    transientTemplate["servers"] = finiteHorizonDictionary["servers"]
+
+    avg_wait_global = finiteHorizonDictionary["global"]["avg_wait"][1:]
+    avg_delay_global = finiteHorizonDictionary["global"]["avg_delay"][1:]
+    avg_number_global = finiteHorizonDictionary["global"]["avg_number"][1:]
+
+    avg_utilizations = []
+
+    for j in range(SERVERS):
+        avg_utilizations.append(finiteHorizonDictionary["avg_utilization" + str(j + 1)][1:])
+
+    if model == 0:
+        avg_wait_queues = [finiteHorizonDictionary["c1"]["avg_wait"][1:], finiteHorizonDictionary["c2"]["avg_wait"][1:],
+                           finiteHorizonDictionary["c3"]["avg_wait"][1:]]
+        avg_delay_queues = [finiteHorizonDictionary["c1"]["avg_delay"][1:], finiteHorizonDictionary["c2"]["avg_delay"][1:],
+                            finiteHorizonDictionary["c3"]["avg_delay"][1:]]
+        avg_number_queues = [finiteHorizonDictionary["c1"]["avg_number"][1:], finiteHorizonDictionary["c2"]["avg_number"][1:],
+                             finiteHorizonDictionary["c3"]["avg_number"][1:]]
+
+    with open(path + "/finiteHorizon.json", "a") as results:
+
+        res = batchMeanTemplate
 
         res["interarrival"] = finiteHorizonDictionary["interarrivals"]
         res["seed"] = finiteHorizonDictionary["seed"]
@@ -409,13 +491,12 @@ def steadyStatePlotter( path, model ):
     plt.close()
 
 
-def transientPlotter(path, model, transientList):
+def transientPlotter(path, model):
     global transientTemplate
 
     delay, wait, utilization = analyticalResults(transientTemplate["interarrival"])
 
     directories = os.listdir(path)
-
 
     for t in transientTemplate.keys():
 

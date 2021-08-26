@@ -678,4 +678,4 @@ for i in range( 0, replicas ):
 if choice == 1:
   steadyStatePlotter( dirName, 1 )
 else:
-  transientPlotter( dirName, 0, transientList)
+  transientPlotter( dirName, 0)
