@@ -12,7 +12,7 @@
 # */
 
 from ssq_abs_network import STEADYLAMBDA
-from statisticsTools import batchMeans, steadyStatePlotter
+from statisticsTools import batchMeans, finiteHorizon, steadyStatePlotter, transientPlotter
 from probabilityDistributions import getLambda, setLambda
 from rngs import getSeed, plantSeeds
 from arrivalCalls import GetArrivalExpo
@@ -25,7 +25,7 @@ STOP  =   840.0                                                       # terminal
 replicas = int(sys.argv[1])
 STEADYLAMBDA = 1
 QUEUES = 3                                                            # number of queues in the node
-SERVERS = 6                                                           # number of servers in the node      
+SERVERS = 6                                                           # number of servers in the node
 multiqueue = None                                                     # multi queues size-based structure 
 X1 = 1.5                                                              # first size boundary                [ minutes ]
 X2 = 4.5                                                              # second size boundary               [ minutes ]
@@ -133,7 +133,7 @@ def NextBatch():
     delay[j] = area_queues[j] / index_queues[j]
     queue_population[j] = area_queues[j] / t.current
 
-  d = 0.0 
+  d = 0.0
 
   for j in range( 0, QUEUES ):
      percentage = index_queues[j] / b
@@ -443,7 +443,7 @@ for i in range( 0, replicas ):
     
     # ---These commands are used to produce the series of output statistics at runtime--------------------------------------------
     if ( index % b == 0 and choice == 1  and index != 0 ) :
-      if not ( batch_index == k or old_index == index ) :  
+      if not ( batch_index == k or old_index == index ) :
         NextBatch()
         batch_index += 1
         old_index = index
@@ -582,39 +582,40 @@ for i in range( 0, replicas ):
     transientStatistics["seed"] = SIMULATION_SEED
     transientStatistics["interarrivals"] = LAMBDA
     transientStatistics["observation_period"] = STOP
-    transientStatistics["servers"] = SERVERS   
+    transientStatistics["servers"] = SERVERS
     transientStatistics["batch_size"] = 0
 
     with open( replName + "/transientStatistics"+ str(r) +".json" , 'w') as json_file:
       json.dump( transientStatistics, json_file, indent = 4  )
     json_file.close()
 
-    transientStatistics = batchmean
+    finiteHorizon( replName, transientStatistics, 0)
 
-    transientStatistics["acquisition_time"] = []
-
-    transientStatistics["global"]["avg_wait"] = []
-    transientStatistics["global"]["avg_number"] = []
-
-    transientStatistics["q1"]["avg_wait"] = []
-    transientStatistics["q2"]["avg_wait"] = []
-    transientStatistics["q3"]["avg_wait"] = []
-
-    transientStatistics["q1"]["avg_delay"] = []
-    transientStatistics["q2"]["avg_delay"] = []
-    transientStatistics["q3"]["avg_delay"] = []
-
-    transientStatistics["q1"]["avg_number"] = []
-    transientStatistics["q2"]["avg_number"] = []
-    transientStatistics["q3"]["avg_number"] = []
-
-    transientStatistics["mean_conditional_slowdown"]["(1.24)"] = []
-    transientStatistics["mean_conditional_slowdown"]["(2.65)"] = []
-    transientStatistics["mean_conditional_slowdown"]["(4.42)"] = []
-    transientStatistics["mean_conditional_slowdown"]["(8.26)"] = []
-
-    for s in range( 1,  SERVERS + 1 ):
-      transientStatistics["avg_utilization" + str(s)] = []
+    transientStatistics = {
+      "seed": 0,
+      "arrival_stream": 0,
+      "service_stream": 1,
+      "observation_period": 0,
+      "interarrivals": 0.0,
+      "batch_size": 0,
+      "k": 0,
+      "servers": 0,
+      "acquisition_time": [],
+      "avg_utilization1": [],
+      "avg_utilization2": [],
+      "avg_utilization3": [],
+      "avg_utilization4": [],
+      "avg_utilization5": [],
+      "avg_utilization6": [],
+      "avg_utilization7": [],
+      "avg_utilization8": [],
+      "avg_utilization9": [],
+      "global": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+      "q1": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+      "q2": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+      "q3": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+      "mean_conditional_slowdown": {"(1.24)": [], "(2.65)": [], "(4.42)": [], "(8.26)": []}
+    }
 
   else:
 
@@ -659,7 +660,5 @@ for i in range( 0, replicas ):
 
 if choice == 1:
   steadyStatePlotter( dirName, 0 )
-
-  
-
-  
+else:
+  transientPlotter( dirName, 0 )
