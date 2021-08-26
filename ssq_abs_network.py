@@ -73,7 +73,10 @@ output_dictionary = {
 }
 
 ''' ----------------- Next Event Data Structures and functions ------------------------------------------------------------- '''
-
+def indexUniformSelection( min, max ): 
+  randomNumber = ( min + ( max - min ) * random() ) 
+  indx = round( randomNumber )
+  return indx
 
 def selectNode( nodes ):
 # -------------------------------------------------
@@ -81,15 +84,23 @@ def selectNode( nodes ):
 #   number of jobs in queue
 # * -----------------------------------------------
   i = 0
-  s = 0
+  choices = []
+  choices.append( 0 )
 
   while ( i < NODES - 1 ):                                            # check which is the node with the
     i += 1                                                            # minimum number of enqueued jobs                 
-    if ( nodes[s].number > nodes[i].number ):
-      s = i
+    if ( nodes[choices[0]].number > nodes[i].number ):
+      while( len(choices) != 0):
+        choices.pop() 
+      choices.append(i)
+    elif nodes[choices[0]].number == nodes[i].number:
+      choices.append(i)
   #EndWhile 
 
-  return (s)
+  candidates = len(choices)
+  winner = indexUniformSelection( 0, candidates-1 )
+
+  return choices[ winner ]
 
 def selectNodeUniform( nodes ):
 # -------------------------------------------------
@@ -504,8 +515,8 @@ for i in range( 0, replicas ):
   if ( nodes[0].index != 0 and nodes[1].index != 0 and nodes[2].index != 0 and index != 0):
     print("\n SSQ NETWORK ABSTRACT SCHEDULING - SEED : "+ str(SIMULATION_SEED) +" \n")
     print("\nfor {0:1d} jobs the service node statistics are:\n".format(index))
-    print("  avg interarrivals .. = {0:6.2f}".format( ( events[0].t - START ) / index))
-    print("  avg wait ........... = {0:6.2f}".format(area / index))
+    print("  avg interarrivals .. = {0:6.2f}".format( ( events[0].t - START ) / b))
+    print("  avg wait ........... = {0:6.2f}".format(area / b))
     d = 0.0
     for j in range( 0, NODES ):
       d += areas[j].queue / nodes[j].index
@@ -520,10 +531,10 @@ for i in range( 0, replicas ):
       print("  avg # in queue ..... = {0:6.2f}".format(areas[j].queue / (t.current-START)))
 
     print("\n  MEAN CONDITIONAL SLOWDOWN " )
-    print("  x = 1.24 minutes ... = {0:6.2f}".format( 1 + (area/index) / 1.24 ))
-    print("  x = 2.65 minutes ... = {0:6.2f}".format( 1 + (area/index) / 2.65 ))
-    print("  x = 4.42 minutes ... = {0:6.2f}".format( 1 + (area/index) / 4.42 ))
-    print("  x = 8.26 minutes ... = {0:6.2f}".format( 1 + (area/index) / 8.26 ))
+    print("  x = 1.24 minutes ... = {0:6.2f}".format( 1 + (area/b) / 1.24 ))
+    print("  x = 2.65 minutes ... = {0:6.2f}".format( 1 + (area/b) / 2.65 ))
+    print("  x = 4.42 minutes ... = {0:6.2f}".format( 1 + (area/b) / 4.42 ))
+    print("  x = 8.26 minutes ... = {0:6.2f}".format( 1 + (area/b) / 8.26 ))
 
 
     print("\nthe server statistics are:\n")
