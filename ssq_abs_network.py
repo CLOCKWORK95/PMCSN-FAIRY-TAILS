@@ -28,6 +28,7 @@ turn = 0
 
 LAMBDA = 0.0
 SIMULATION_SEED = 0
+transientList = list()
 
 batchmean = {
   "seed" : 0,
@@ -73,10 +74,41 @@ output_dictionary = {
 }
 
 ''' ----------------- Next Event Data Structures and functions ------------------------------------------------------------- '''
-def indexUniformSelection( min, max ): 
-  randomNumber = ( min + ( max - min ) * random() ) 
+def indexUniformSelection( min, max ):
+  randomNumber = ( min + ( max - min ) * random() )
   indx = round( randomNumber )
   return indx
+
+def resetTransientStatistics():
+  global transientStatistics
+
+  transientStatistics = {
+    "seed": 0,
+    "arrival_stream": 0,
+    "service_stream": 1,
+    "observation_period": 0,
+    "interarrivals": 0.0,
+    "batch_size": 0,
+    "k": 0,
+    "servers": 0,
+    "acquisition_time": [],
+    "avg_utilization1": [],
+    "avg_utilization2": [],
+    "avg_utilization3": [],
+    "avg_utilization4": [],
+    "avg_utilization5": [],
+    "avg_utilization6": [],
+    "avg_utilization7": [],
+    "avg_utilization8": [],
+    "avg_utilization9": [],
+    "global": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+    "c1": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+    "c2": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+    "c3": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+    "mean_conditional_slowdown": {"(1.24)": [], "(2.65)": [], "(4.42)": [], "(8.26)": []}
+  }
+  return True
+
 
 def selectNode( nodes ):
 # -------------------------------------------------
@@ -91,7 +123,7 @@ def selectNode( nodes ):
     i += 1                                                            # minimum number of enqueued jobs                 
     if ( nodes[choices[0]].number > nodes[i].number ):
       while( len(choices) != 0):
-        choices.pop() 
+        choices.pop()
       choices.append(i)
     elif nodes[choices[0]].number == nodes[i].number:
       choices.append(i)
@@ -217,6 +249,7 @@ def transientStats():
   global START
   global area, index, number, sum
   global transientStatistics
+  global transientList
 
   wait = [ 0.0 for i in range(NODES) ]
   delay = [ 0.0 for i in range(NODES) ]
@@ -270,7 +303,7 @@ def transientStats():
 
   for s in range( 1,  NODES + 1 ):
     transientStatistics["avg_utilization" + str(s)].append( sum[s].service / (t.current-START) )
-  
+
   index = 0
   area = 0
 
@@ -356,7 +389,8 @@ plantSeeds(0)
 r = 0
 
 for i in range( 0, replicas ):
-
+  TRANSIENT_INDEX = 1
+  TRANSIENT_MULTIPLIER = 1.5
   r += 1
 
   try:
@@ -427,22 +461,30 @@ for i in range( 0, replicas ):
       period += 1
       setLambda( 3 )
       LAMBDA = getLambda()
+      #resetTransientStatistics()
+
     if ( choice == 0 and t.current >= 300 and period == 1):
       period += 1
       setLambda( 4 )
       LAMBDA = getLambda()
+      #resetTransientStatistics()
+
     if ( choice == 0 and t.current >= 420 and period == 2):
       period += 1
       setLambda( 2 )
       LAMBDA = getLambda()
+      #resetTransientStatistics()
+
     if ( choice == 0 and t.current >= 720 and period == 3):
       period += 1
       setLambda( 5 )
       LAMBDA = getLambda()
+      #resetTransientStatistics()
 
     disp += 1
-    if ( choice == 0 and disp % mod == 0 ):
+    if ( choice == 0 and index % (2 * TRANSIENT_MULTIPLIER) == 0 and index != 0 ):
       transientStats()
+      TRANSIENT_MULTIPLIER = TRANSIENT_MULTIPLIER * 2
     #------------------------------------------------------------------------------------------------------------------------------
 
     e = NextEvent(events)                                               # next event index 
@@ -512,7 +554,8 @@ for i in range( 0, replicas ):
 
   #EndWhile
 
-  '''
+  transientList.append(transientStatistics)
+
   if ( nodes[0].index != 0 and nodes[1].index != 0 and nodes[2].index != 0 and index != 0):
     print("\n SSQ NETWORK ABSTRACT SCHEDULING - SEED : "+ str(SIMULATION_SEED) +" \n")
     print("\nfor {0:1d} jobs the service node statistics are:\n".format(index))
@@ -635,4 +678,4 @@ for i in range( 0, replicas ):
 if choice == 1:
   steadyStatePlotter( dirName, 1 )
 else:
-  transientPlotter( dirName, 0)
+  transientPlotter( dirName, 0, transientList)
