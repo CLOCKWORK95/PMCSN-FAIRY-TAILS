@@ -132,11 +132,14 @@ def NextBatch():
     delay[j] = area_queues[j] / index_queues[j]
     queue_population[j] = area_queues[j] / t.current
 
-  d = 0.0
+  d = 0.0 
+
   for j in range( 0, QUEUES ):
-    d += ( area_queues[j] / index_queues[j] ) * ( index_queues[j] / index )
+     percentage = index_queues[j] / b
+     if index_queues[j] != 0:
+      d += ( area_queues[j] / index_queues[j] ) * percentage
   
-  global_wait = area / index
+  global_wait = area / b
   global_delay = d
   global_number = area / t.current
 
@@ -164,8 +167,6 @@ def NextBatch():
   for s in range( 1,  SERVERS + 1 ):
     batchmean["avg_utilization" + str(s)].append( sum[s].service / (t.current-START) )
 
-  #number = 0
-  index = 0
   area = 0
 
   #number_queues = [ 0, 0, 0 ]                                                       
@@ -340,9 +341,11 @@ print(" Infinite Horizon ( Steady-State Statistics - Batch Means)  .......... 1"
 choice = int( input("\n Please, type your choice here: ") )
 
 b = 512
+k = 0
 
 if choice == 1:
   b = int( input("\n Type a size for the batch : ") )
+  k = int( input("\n Type a number of batches : "))
 
 f = open("MSMQ_sb/id.txt", "r")
 old_id = f.readline()
@@ -432,13 +435,17 @@ for i in range( 0, replicas ):
   period = 0
   disp = 0
   mod = 30
+  old_index = 0
+  batch_index = 0
 
   while ( ( events[0].x != 0 ) or ( number != 0 ) ):
     
     # ---These commands are used to produce the series of output statistics at runtime--------------------------------------------
-    if ( index == b and choice == 1 ) :
-      NextBatch( )
-      batch_index += 1
+    if ( index % b == 0 and choice == 1  and index != 0 ) :
+      if not ( batch_index == k or old_index == index ) :  
+        NextBatch()
+        batch_index += 1
+        old_index = index
     
     if ( choice == 0 and t.current >= 120 and period == 0):
       period += 1
