@@ -74,10 +74,41 @@ output_dictionary = {
 }
 
 ''' ----------------- Next Event Data Structures and functions ------------------------------------------------------------- '''
-def indexUniformSelection( min, max ): 
-  randomNumber = ( min + ( max - min ) * random() ) 
+def indexUniformSelection( min, max ):
+  randomNumber = ( min + ( max - min ) * random() )
   indx = round( randomNumber )
   return indx
+
+def resetTransientStatistics():
+  global transientStatistics
+
+  transientStatistics = {
+    "seed": 0,
+    "arrival_stream": 0,
+    "service_stream": 1,
+    "observation_period": 0,
+    "interarrivals": 0.0,
+    "batch_size": 0,
+    "k": 0,
+    "servers": 0,
+    "acquisition_time": [],
+    "avg_utilization1": [],
+    "avg_utilization2": [],
+    "avg_utilization3": [],
+    "avg_utilization4": [],
+    "avg_utilization5": [],
+    "avg_utilization6": [],
+    "avg_utilization7": [],
+    "avg_utilization8": [],
+    "avg_utilization9": [],
+    "global": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+    "c1": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+    "c2": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+    "c3": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+    "mean_conditional_slowdown": {"(1.24)": [], "(2.65)": [], "(4.42)": [], "(8.26)": []}
+  }
+  return True
+
 
 def resetTransientStatistics():
   global transientStatistics
@@ -123,7 +154,7 @@ def selectNode( nodes ):
     i += 1                                                            # minimum number of enqueued jobs                 
     if ( nodes[choices[0]].number > nodes[i].number ):
       while( len(choices) != 0):
-        choices.pop() 
+        choices.pop()
       choices.append(i)
     elif nodes[choices[0]].number == nodes[i].number:
       choices.append(i)
