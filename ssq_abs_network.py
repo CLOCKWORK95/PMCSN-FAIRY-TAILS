@@ -22,8 +22,8 @@ from rngs import random
 START =      0.0                                                      # initial time of the observation period      [minutes]         
 STOP  =    840.0                                                      # terminal (close the door) time              [minutes]
 replicas = int(sys.argv[1])
-
-NODES = 3                                                             # number of nodes (subsystems) in the network
+STEADYLAMBDA = 1
+NODES = 6                                                             # number of nodes (subsystems) in the network
 turn = 0
 
 LAMBDA = 0.0
@@ -175,17 +175,17 @@ def NextBatch():
   batchmean["global"]["avg_delay"].append(global_delay)
   batchmean["global"]["avg_number"].append(global_number)
 
-  batchmean["c1"]["avg_wait"].append(wait[0])
-  batchmean["c2"]["avg_wait"].append(wait[1])
-  batchmean["c3"]["avg_wait"].append(wait[2])
+  if NODES >= 1 : batchmean["c1"]["avg_wait"].append(wait[0])
+  if NODES >= 2 : batchmean["c2"]["avg_wait"].append(wait[1])
+  if NODES >= 3 : batchmean["c3"]["avg_wait"].append(wait[2])
 
-  batchmean["c1"]["avg_delay"].append(delay[0])
-  batchmean["c2"]["avg_delay"].append(delay[1])
-  batchmean["c3"]["avg_delay"].append(delay[2])
+  if NODES >= 1 : batchmean["c1"]["avg_delay"].append(delay[0])
+  if NODES >= 2 : batchmean["c2"]["avg_delay"].append(delay[1])
+  if NODES >= 3 : batchmean["c3"]["avg_delay"].append(delay[2])
 
-  batchmean["c1"]["avg_number"].append(queue_population[0])
-  batchmean["c2"]["avg_number"].append(queue_population[1])
-  batchmean["c3"]["avg_number"].append(queue_population[2])
+  if NODES >= 1 : batchmean["c1"]["avg_number"].append(queue_population[0])
+  if NODES >= 2 : batchmean["c2"]["avg_number"].append(queue_population[1])
+  if NODES >= 3 : batchmean["c3"]["avg_number"].append(queue_population[2])
 
   batchmean["mean_conditional_slowdown"]["(1.24)"].append( 1 + (area/b)  / 1.24 )
   batchmean["mean_conditional_slowdown"]["(2.65)"].append( 1 + (area/b) / 2.65 )
@@ -393,7 +393,7 @@ for i in range( 0, replicas ):
     LAMBDA = 4
     setLambda( LAMBDA )
   else:
-    LAMBDA = 2
+    LAMBDA = STEADYLAMBDA
     setLambda( LAMBDA )
 
   # initialization of the first arrival event
@@ -512,6 +512,7 @@ for i in range( 0, replicas ):
 
   #EndWhile
 
+  '''
   if ( nodes[0].index != 0 and nodes[1].index != 0 and nodes[2].index != 0 and index != 0):
     print("\n SSQ NETWORK ABSTRACT SCHEDULING - SEED : "+ str(SIMULATION_SEED) +" \n")
     print("\nfor {0:1d} jobs the service node statistics are:\n".format(index))
@@ -545,7 +546,7 @@ for i in range( 0, replicas ):
         print("{0:8d} {1:14.3f} {2:15.2f} {3:15.3f}".format(s, sum[s].service / (t.current-START), sum[s].service / sum[s].served,float(sum[s].served) / index))
     except:
       print("")
-
+  '''
   # Record simulation results on a header JSON file
 
   if (choice == 0 ):

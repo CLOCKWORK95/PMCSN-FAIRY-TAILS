@@ -107,6 +107,28 @@ def batchMeans( path, batchDictionary, model ):
       avg_delay_queues = [ batchDictionary["q1"]["avg_delay"][1:], batchDictionary["q2"]["avg_delay"][1:], batchDictionary["q3"]["avg_delay"][1:] ]
       avg_number_queues = [ batchDictionary["q1"]["avg_number"][1:], batchDictionary["q2"]["avg_number"][1:], batchDictionary["q3"]["avg_number"][1:]]
 
+    if model == 1:
+
+      avg_wait_queues = []
+      avg_delay_queues = []
+      avg_number_queues = []
+
+      if SERVERS >= 1 : 
+        avg_wait_queues.append( batchDictionary["c1"]["avg_wait"][1:] )
+        avg_delay_queues.append( batchDictionary["c1"]["avg_delay"][1:] )
+        avg_number_queues.append( batchDictionary["c1"]["avg_number"][1:] )
+      
+      if SERVERS >= 2 : 
+        avg_wait_queues.append( batchDictionary["c2"]["avg_wait"][1:] )
+        avg_delay_queues.append( batchDictionary["c2"]["avg_delay"][1:] )
+        avg_number_queues.append( batchDictionary["c2"]["avg_number"][1:] )
+
+      if SERVERS >= 3 : 
+        avg_wait_queues.append( batchDictionary["c3"]["avg_wait"][1:] )
+        avg_delay_queues.append( batchDictionary["c3"]["avg_delay"][1:] )
+        avg_number_queues.append( batchDictionary["c3"]["avg_number"][1:] )
+
+      
 
     with open( path + "/steadystate.json" , "a") as results:
 
@@ -131,23 +153,23 @@ def batchMeans( path, batchDictionary, model ):
         res["GLOBAL AVG NUMBER"]["stdev"] = stdev
         res["GLOBAL AVG NUMBER"]["half_confidence_interval"] = half_interval
 
-        if model == 0:
-          for j in range( 1, 4 ):
-            mean, stdev, half_interval = estimate( avg_wait_queues[j-1] )
-            res["QUEUE" + str(j) + " AVG WAIT"]["mean"] = mean
-            res["QUEUE" + str(j) + " AVG WAIT"]["stdev"] = stdev
-            res["QUEUE" + str(j) + " AVG WAIT"]["half_confidence_interval"] = half_interval
+        
+        for j in range( 1, 4 ):
+          mean, stdev, half_interval = estimate( avg_wait_queues[j-1] )
+          res["QUEUE" + str(j) + " AVG WAIT"]["mean"] = mean
+          res["QUEUE" + str(j) + " AVG WAIT"]["stdev"] = stdev
+          res["QUEUE" + str(j) + " AVG WAIT"]["half_confidence_interval"] = half_interval
 
-            mean, stdev, half_interval = estimate( avg_delay_queues[j-1] )
-            res["QUEUE" + str(j) + " AVG DELAY"]["mean"] = mean
-            res["QUEUE" + str(j) + " AVG DELAY"]["stdev"] = stdev
-            res["QUEUE" + str(j) + " AVG DELAY"]["half_confidence_interval"] = half_interval
-            
-            mean, stdev, half_interval = estimate( avg_number_queues[j-1] )
-            res["QUEUE" + str(j) + " AVG NUMBER"]["mean"] = mean
-            res["QUEUE" + str(j) + " AVG NUMBER"]["stdev"] = stdev
-            res["QUEUE" + str(j) + " AVG NUMBER"]["half_confidence_interval"] = half_interval
-      
+          mean, stdev, half_interval = estimate( avg_delay_queues[j-1] )
+          res["QUEUE" + str(j) + " AVG DELAY"]["mean"] = mean
+          res["QUEUE" + str(j) + " AVG DELAY"]["stdev"] = stdev
+          res["QUEUE" + str(j) + " AVG DELAY"]["half_confidence_interval"] = half_interval
+          
+          mean, stdev, half_interval = estimate( avg_number_queues[j-1] )
+          res["QUEUE" + str(j) + " AVG NUMBER"]["mean"] = mean
+          res["QUEUE" + str(j) + " AVG NUMBER"]["stdev"] = stdev
+          res["QUEUE" + str(j) + " AVG NUMBER"]["half_confidence_interval"] = half_interval
+
 
         for j in range( 1, SERVERS + 1 ):
 
@@ -268,7 +290,9 @@ def steadyStatePlotter( path, model ):
     else:
       # SIZE BASED MODEL
       if t.startswith("UTILIZATION"):
-        plt.ylim(0,1)
+        maxvalue = np.max(values) + np.max(errors)
+        minvalue = np.min(values) - np.max(errors)
+        plt.ylim(minvalue-0.1,maxvalue+0.1)
       #else:
         #plt.ylim(0, 14)
 
