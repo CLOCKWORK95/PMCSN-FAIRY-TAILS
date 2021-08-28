@@ -75,8 +75,8 @@ output_dictionary = {
 }
 
 ''' ----------------- Next Event Data Structures and functions ------------------------------------------------------------- '''
-def indexUniformSelection( min, max ): 
-  randomNumber = ( min + ( max - min ) * random() ) 
+def indexUniformSelection( min, max ):
+  randomNumber = ( min + ( max - min ) * random() )
   indx = round( randomNumber )
   return indx
 
@@ -124,7 +124,7 @@ def selectNode( nodes ):
     i += 1                                                            # minimum number of enqueued jobs                 
     if ( nodes[choices[0]].number > nodes[i].number ):
       while( len(choices) != 0):
-        choices.pop() 
+        choices.pop()
       choices.append(i)
     elif nodes[choices[0]].number == nodes[i].number:
       choices.append(i)
