@@ -22,8 +22,8 @@ from rngs import random
 START =      0.0                                                      # initial time of the observation period      [minutes]
 STOP  =    840.0                                                      # terminal (close the door) time              [minutes]
 replicas = int(sys.argv[1])
-STEADYLAMBDA = 1
-NODES = 6                                                             # number of nodes (subsystems) in the network
+STEADYLAMBDA = 4
+NODES = 3                                                             # number of nodes (subsystems) in the network
 turn = 0
 
 LAMBDA = 0.0
@@ -57,7 +57,7 @@ batchmean = {
   # "c5" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : []  },
   # "c6" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : []  },
   "mean_conditional_slowdown" : { "(1.24)": [] , "(2.65)": [] , "(4.42)": [] , "(8.26)": []  },
-  "index" : 0
+  "index" : []
 }
 
 batch_index = 0
@@ -79,6 +79,7 @@ def indexUniformSelection( min, max ):
   randomNumber = ( min + ( max - min ) * random() )
   indx = round( randomNumber )
   return indx
+
 
 def resetTransientStatistics():
   global transientStatistics
@@ -106,7 +107,8 @@ def resetTransientStatistics():
     "c1": {"avg_wait": [], "avg_delay": [], "avg_number": []},
     "c2": {"avg_wait": [], "avg_delay": [], "avg_number": []},
     "c3": {"avg_wait": [], "avg_delay": [], "avg_number": []},
-    "mean_conditional_slowdown": {"(1.24)": [], "(2.65)": [], "(4.42)": [], "(8.26)": []}
+    "mean_conditional_slowdown": {"(1.24)": [], "(2.65)": [], "(4.42)": [], "(8.26)": []},
+    "index": []
   }
   return True
 
@@ -266,12 +268,12 @@ def transientStats():
   global_number = area / t.current
   
   d = 0.0
-  for j in range( 0, NODES ):
-    try:
-      d += areas[j].queue / nodes[j].index
-    except:
-      d = 0.0
-  global_delay = d / NODES
+  for j in range(0, NODES):
+    percentage = nodes[j].index / index
+    if nodes[j].index != 0:
+      d += (areas[j].queue / nodes[j].index) * percentage
+
+  global_delay = d
 
   transientStatistics["global"]["avg_wait"].append(global_wait)
   transientStatistics["global"]["avg_delay"].append(global_delay)
@@ -290,6 +292,7 @@ def transientStats():
   transientStatistics["c3"]["avg_number"].append(queue_population[2])
 
   transientStatistics["acquisition_time"].append(t.current)
+  transientStatistics["index"].append(index)
 
   try:
     transientStatistics["mean_conditional_slowdown"]["(1.24)"].append( 1 + (areas[0].queue / nodes[0].index) / 1.24 )
@@ -304,20 +307,6 @@ def transientStats():
 
   for s in range( 1,  NODES + 1 ):
     transientStatistics["avg_utilization" + str(s)].append( sum[s].service / (t.current-START) )
-
-  index = 0
-  area = 0
-
-  for j in range ( 0, NODES ):
-    areas[j].node = 0.0
-    areas[j].queue = 0.0
-    nodes[j].index = 0
-
-  sum = [ accumSum() for i in range( 0, NODES + 1 ) ]
-
-  for s in range( 1, NODES + 1 ):  
-    sum[s].service = 0.0
-    sum[s].served  = 0
 
   START = t.current
 
@@ -391,7 +380,7 @@ r = 0
 
 for i in range( 0, replicas ):
   TRANSIENT_INDEX = 1
-  TRANSIENT_MULTIPLIER = 2
+  TRANSIENT_MULTIPLIER = 8
   r += 1
 
   try:
@@ -458,29 +447,29 @@ for i in range( 0, replicas ):
         batch_index += 1
         old_index = index
 
-    if ( choice == 0 and t.current >= 120 and period == 0):
-      period += 1
-      setLambda( 3 )
-      LAMBDA = getLambda()
-      #resetTransientStatistics()
-
-    if ( choice == 0 and t.current >= 300 and period == 1):
-      period += 1
-      setLambda( 4 )
-      LAMBDA = getLambda()
-      #resetTransientStatistics()
-
-    if ( choice == 0 and t.current >= 420 and period == 2):
-      period += 1
-      setLambda( 2 )
-      LAMBDA = getLambda()
-      #resetTransientStatistics()
-
-    if ( choice == 0 and t.current >= 720 and period == 3):
-      period += 1
-      setLambda( 5 )
-      LAMBDA = getLambda()
-      #resetTransientStatistics()
+    # if ( choice == 0 and t.current >= 120 and period == 0):
+    #   period += 1
+    #   setLambda( 3 )
+    #   LAMBDA = getLambda()
+    #   #resetTransientStatistics()
+    #
+    # if ( choice == 0 and t.current >= 300 and period == 1):
+    #   period += 1
+    #   setLambda( 4 )
+    #   LAMBDA = getLambda()
+    #   #resetTransientStatistics()
+    #
+    # if ( choice == 0 and t.current >= 420 and period == 2):
+    #   period += 1
+    #   setLambda( 2 )
+    #   LAMBDA = getLambda()
+    #   #resetTransientStatistics()
+    #
+    # if ( choice == 0 and t.current >= 720 and period == 3):
+    #   period += 1
+    #   setLambda( 5 )
+    #   LAMBDA = getLambda()
+    #   #resetTransientStatistics()
 
     disp += 1
     if ( choice == 0 and index % (round(1.2 * TRANSIENT_MULTIPLIER)) == 0 and index != 0 ):
@@ -557,40 +546,40 @@ for i in range( 0, replicas ):
 
   transientList.append(transientStatistics)
 
-  if ( nodes[0].index != 0 and nodes[1].index != 0 and nodes[2].index != 0 and index != 0):
-    print("\n SSQ NETWORK ABSTRACT SCHEDULING - SEED : "+ str(SIMULATION_SEED) +" \n")
-    print("\nfor {0:1d} jobs the service node statistics are:\n".format(index))
-    print("  avg interarrivals .. = {0:6.2f}".format( ( events[0].t - START ) / b))
-    print("  avg wait ........... = {0:6.2f}".format(area / b))
-    d = 0.0
-    for j in range( 0, NODES ):
-      d += areas[j].queue / nodes[j].index
-    print("  avg delay .......... = {0:6.2f}".format( d / NODES ))
-    print("  avg # in node ...... = {0:6.2f}".format(area / (t.current - START) ) )
-      
+  #if ( nodes[0].index != 0 and nodes[1].index != 0 and nodes[2].index != 0 and index != 0):
+    # print("\n SSQ NETWORK ABSTRACT SCHEDULING - SEED : "+ str(SIMULATION_SEED) +" \n")
+    # print("\nfor {0:1d} jobs the service node statistics are:\n".format(index))
+    # print("  avg interarrivals .. = {0:6.2f}".format( ( events[0].t - START ) / b))
+    # print("  avg wait ........... = {0:6.2f}".format(area / b))
+    # d = 0.0
+    # for j in range( 0, NODES ):
+    #   d += areas[j].queue / nodes[j].index
+    # print("  avg delay .......... = {0:6.2f}".format( d / NODES ))
+    # print("  avg # in node ...... = {0:6.2f}".format(area / (t.current - START) ) )
+    #
+    #
+    # for j in range ( 0, NODES ):
+    #   print("\n  NODE N° : " + str(j+1) )
+    #   print("  avg wait ........... = {0:6.2f}".format(areas[j].node / nodes[j].index))
+    #   print("  avg delay .......... = {0:6.2f}".format(areas[j].queue / nodes[j].index))
+    #   print("  avg # in queue ..... = {0:6.2f}".format(areas[j].queue / (t.current-START)))
+    #
+    # print("\n  MEAN CONDITIONAL SLOWDOWN " )
+    # print("  x = 1.24 minutes ... = {0:6.2f}".format( 1 + (area/b) / 1.24 ))
+    # print("  x = 2.65 minutes ... = {0:6.2f}".format( 1 + (area/b) / 2.65 ))
+    # print("  x = 4.42 minutes ... = {0:6.2f}".format( 1 + (area/b) / 4.42 ))
+    # print("  x = 8.26 minutes ... = {0:6.2f}".format( 1 + (area/b) / 8.26 ))
+    #
+    #
+    # print("\nthe server statistics are:\n")
+    # print("    server     utilization     avg service        share\n")
+    #
+    # try:
+    #   for s in range( 1, NODES + 1 ):
+    #     print("{0:8d} {1:14.3f} {2:15.2f} {3:15.3f}".format(s, sum[s].service / (t.current-START), sum[s].service / sum[s].served,float(sum[s].served) / index))
+    # except:
+    #   print("")
 
-    for j in range ( 0, NODES ):
-      print("\n  NODE N° : " + str(j+1) )
-      print("  avg wait ........... = {0:6.2f}".format(areas[j].node / nodes[j].index))
-      print("  avg delay .......... = {0:6.2f}".format(areas[j].queue / nodes[j].index))
-      print("  avg # in queue ..... = {0:6.2f}".format(areas[j].queue / (t.current-START)))
-
-    print("\n  MEAN CONDITIONAL SLOWDOWN " )
-    print("  x = 1.24 minutes ... = {0:6.2f}".format( 1 + (area/b) / 1.24 ))
-    print("  x = 2.65 minutes ... = {0:6.2f}".format( 1 + (area/b) / 2.65 ))
-    print("  x = 4.42 minutes ... = {0:6.2f}".format( 1 + (area/b) / 4.42 ))
-    print("  x = 8.26 minutes ... = {0:6.2f}".format( 1 + (area/b) / 8.26 ))
-
-
-    print("\nthe server statistics are:\n")
-    print("    server     utilization     avg service        share\n")
-
-    try:
-      for s in range( 1, NODES + 1 ):
-        print("{0:8d} {1:14.3f} {2:15.2f} {3:15.3f}".format(s, sum[s].service / (t.current-START), sum[s].service / sum[s].served,float(sum[s].served) / index))
-    except:
-      print("")
-  '''
   # Record simulation results on a header JSON file
 
   if (choice == 0 ):
@@ -604,33 +593,9 @@ for i in range( 0, replicas ):
       json.dump(transientStatistics, json_file, indent=4)
     json_file.close()
 
-    finiteHorizon(replName, transientStatistics, 0)
+    finiteHorizon(transientStatistics)
 
-    transientStatistics = {
-      "seed": 0,
-      "arrival_stream": 0,
-      "service_stream": 1,
-      "observation_period": 0,
-      "interarrivals": 0.0,
-      "batch_size": 0,
-      "k": 0,
-      "servers": 0,
-      "acquisition_time": [],
-      "avg_utilization1": [],
-      "avg_utilization2": [],
-      "avg_utilization3": [],
-      "avg_utilization4": [],
-      "avg_utilization5": [],
-      "avg_utilization6": [],
-      "avg_utilization7": [],
-      "avg_utilization8": [],
-      "avg_utilization9": [],
-      "global": {"avg_wait": [], "avg_delay": [], "avg_number": []},
-      "c1": {"avg_wait": [], "avg_delay": [], "avg_number": []},
-      "c2": {"avg_wait": [], "avg_delay": [], "avg_number": []},
-      "c3": {"avg_wait": [], "avg_delay": [], "avg_number": []},
-      "mean_conditional_slowdown": {"(1.24)": [], "(2.65)": [], "(4.42)": [], "(8.26)": []}
-    }
+    resetTransientStatistics()
   
   else:
 

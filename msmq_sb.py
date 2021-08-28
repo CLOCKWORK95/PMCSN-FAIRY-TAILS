@@ -585,11 +585,11 @@ for i in range( 0, replicas ):
     transientStatistics["servers"] = SERVERS
     transientStatistics["batch_size"] = 0
 
-    with open( replName + "/transientStatistics"+ str(r) +".json" , 'w') as json_file:
+    with open( replName + "/transientStatistics" + str(r) + ".json" , 'w') as json_file:
       json.dump( transientStatistics, json_file, indent = 4  )
     json_file.close()
 
-    finiteHorizon( replName, transientStatistics, 0)
+    finiteHorizon(transientStatistics)
 
     transientStatistics = {
       "seed": 0,
