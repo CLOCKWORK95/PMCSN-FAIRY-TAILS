@@ -10,48 +10,24 @@ batchMeanTemplate = {
   "interarrival" : 0,
   "servers" : 0,
   "seed" : 0,
-  "GLOBAL AVG WAIT" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "GLOBAL AVG DELAY" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "GLOBAL AVG NUMBER":{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "QUEUE1 AVG WAIT" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "QUEUE1 AVG DELAY" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "QUEUE1 AVG NUMBER" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "QUEUE2 AVG WAIT" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "QUEUE2 AVG DELAY" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "QUEUE2 AVG NUMBER" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "QUEUE3 AVG WAIT" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "QUEUE3 AVG DELAY" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "QUEUE3 AVG NUMBER" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "UTILIZATION1" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "UTILIZATION2" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "UTILIZATION3" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "UTILIZATION4" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "UTILIZATION5" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "UTILIZATION6" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}
-}
-
-transientTemplate = {
-  "interarrival" : 0,
-  "servers" : 0,
-  "seed" : 0,
-  "GLOBAL AVG WAIT" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "GLOBAL AVG DELAY" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "GLOBAL AVG NUMBER":{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "QUEUE1 AVG WAIT" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "QUEUE1 AVG DELAY" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "QUEUE1 AVG NUMBER" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "QUEUE2 AVG WAIT" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "QUEUE2 AVG DELAY" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "QUEUE2 AVG NUMBER" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "QUEUE3 AVG WAIT" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "QUEUE3 AVG DELAY" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "QUEUE3 AVG NUMBER" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "UTILIZATION1" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "UTILIZATION2" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "UTILIZATION3" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "UTILIZATION4" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "UTILIZATION5" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
-  "UTILIZATION6" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}
+  "GLOBAL AVG WAIT" : [],
+  "GLOBAL AVG DELAY" : [],
+  "GLOBAL AVG NUMBER": [],
+  "QUEUE1 AVG WAIT" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
+  "QUEUE1 AVG DELAY" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
+  "QUEUE1 AVG NUMBER" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
+  "QUEUE2 AVG WAIT" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
+  "QUEUE2 AVG DELAY" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
+  "QUEUE2 AVG NUMBER" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
+  "QUEUE3 AVG WAIT" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
+  "QUEUE3 AVG DELAY" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
+  "QUEUE3 AVG NUMBER" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
+  "UTILIZATION1" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
+  "UTILIZATION2" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
+  "UTILIZATION3" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
+  "UTILIZATION4" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
+  "UTILIZATION5" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
+  "UTILIZATION6" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}]
 }
 
 
@@ -452,8 +428,7 @@ def transientPlotter(path, model, transientList):
                 organizer[t].append([])
             else:
                 for t2 in organizer[t].keys():
-                    for i in range(0, len(transientList[0]['acquisition_time'])):
-                        organizer[t][t2].append([])
+                    organizer[t][t2].append([])
 
     for transientStats in transientList:
         for t in transientStats.keys():
@@ -467,11 +442,97 @@ def transientPlotter(path, model, transientList):
             else:
                 for t2 in organizer[t].keys():
                     for i in range(0, len(transientStats[t][t2])):
-                        organizer[t][t2][i].append(transientStats[t][t2][i])
+                        try:
+                            organizer[t][t2][i].append(transientStats[t][t2][i])
+                        except:
+                            continue
 
-    pprint(organizer)
 
-    for t in transientTemplate.keys():
+    SERVERS = int(transientTemplate["servers"])
+
+    avg_wait_global = []
+    avg_delay_global = []
+    avg_number_global = []
+
+    for i in range(0, len(organizer["global"]["avg_wait"])):
+        avg_wait_global.append(organizer["global"]["avg_wait"][i])
+    for i in range(0, len(organizer["global"]["avg_delay"])):
+        avg_delay_global.append(organizer["global"]["avg_delay"][i])
+    for i in range(0, len(organizer["global"]["avg_number"])):
+        avg_number_global.append(organizer["global"]["avg_number"][i])
+
+    avg_utilizations = []
+
+    for j in range(SERVERS):
+        avg_utilizations.append(organizer["avg_utilization" + str(j + 1)][1:])
+
+    if model == 0:
+        avg_wait_queues = [organizer["c1"]["avg_wait"][1:], organizer["c2"]["avg_wait"][1:],
+                           organizer["c3"]["avg_wait"][1:]]
+        avg_delay_queues = [organizer["c1"]["avg_delay"][1:], organizer["c2"]["avg_delay"][1:],
+                            organizer["c3"]["avg_delay"][1:]]
+        avg_number_queues = [organizer["c1"]["avg_number"][1:], organizer["c2"]["avg_number"][1:],
+                             organizer["c3"]["avg_number"][1:]]
+
+    res = transientTemplate
+
+    for j in range(0, len(avg_number_global)):
+        res["GLOBAL AVG NUMBER"].append({"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95})
+
+    for j in range(0, len(avg_wait_global)):
+        res["GLOBAL AVG WAIT"].append({"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95})
+
+    for j in range(0, len(avg_delay_global)):
+        res["GLOBAL AVG DELAY"].append({"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95})
+
+
+    for j in range(0, len(avg_number_global)):
+        if(len(avg_number_global[j]) >= 4):
+            mean, stdev, half_interval = estimate(avg_number_global[j])
+            res["GLOBAL AVG NUMBER"][j]["mean"] = mean
+            res["GLOBAL AVG NUMBER"][j]["stdev"] = stdev
+            res["GLOBAL AVG NUMBER"][j]["half_confidence_interval"] = half_interval
+
+    for j in range(0, len(avg_wait_global)):
+        if (len(avg_wait_global[j]) >= 4):
+            mean, stdev, half_interval = estimate(avg_wait_global[j])
+            res["GLOBAL AVG WAIT"][j]["mean"] = mean
+            res["GLOBAL AVG WAIT"][j]["stdev"] = stdev
+            res["GLOBAL AVG WAIT"][j]["half_confidence_interval"] = half_interval
+
+    for j in range(0, len(avg_delay_global)):
+        if (len(avg_delay_global[j]) >= 4):
+            mean, stdev, half_interval = estimate(avg_delay_global[j])
+            res["GLOBAL AVG DELAY"][j]["mean"] = mean
+            res["GLOBAL AVG DELAY"][j]["stdev"] = stdev
+            res["GLOBAL AVG DELAY"][j]["half_confidence_interval"] = half_interval
+
+    pprint(res)
+
+    # if model == 0:
+    #     for j in range(1, 4):
+    #         mean, stdev, half_interval = estimate(avg_wait_queues[j - 1])
+    #         res["QUEUE" + str(j) + " AVG WAIT"]["mean"] = mean
+    #         res["QUEUE" + str(j) + " AVG WAIT"]["stdev"] = stdev
+    #         res["QUEUE" + str(j) + " AVG WAIT"]["half_confidence_interval"] = half_interval
+    #
+    #         mean, stdev, half_interval = estimate(avg_delay_queues[j - 1])
+    #         res["QUEUE" + str(j) + " AVG DELAY"]["mean"] = mean
+    #         res["QUEUE" + str(j) + " AVG DELAY"]["stdev"] = stdev
+    #         res["QUEUE" + str(j) + " AVG DELAY"]["half_confidence_interval"] = half_interval
+    #
+    #         mean, stdev, half_interval = estimate(avg_number_queues[j - 1])
+    #         res["QUEUE" + str(j) + " AVG NUMBER"]["mean"] = mean
+    #         res["QUEUE" + str(j) + " AVG NUMBER"]["stdev"] = stdev
+    #         res["QUEUE" + str(j) + " AVG NUMBER"]["half_confidence_interval"] = half_interval
+    #
+    # for j in range(1, SERVERS + 1):
+    #     mean, stdev, half_interval = estimate(avg_utilizations[j - 1])
+    #     res["UTILIZATION" + str(j)]["mean"] = mean
+    #     res["UTILIZATION" + str(j)]["stdev"] = stdev
+    #     res["UTILIZATION" + str(j)]["half_confidence_interval"] = half_interval
+
+    for t in res.keys():
 
         if t in ["interarrival", "servers", "seed"]:
             continue
@@ -493,58 +554,14 @@ def transientPlotter(path, model, transientList):
 
         servers = 0
 
-        for d in directories:
 
-            files = os.listdir(path + "/" + d)
-
-            for f in files:
-
-                if f.startswith("transientStatistics"):
-
-                    filepath = path + "/" + d + "/" + f
-
-                    with open(filepath) as jsonHeader:
-                        data = json.load(jsonHeader)
-                        seeds.append(data["seed"])
-                        if headerbuilder == 0:
-                            interarrival = data["interarrivals"]
-                            servers = data["servers"]
-                            b = data["batch_size"]
-                            k = data["k"]
-                            title += "\n" + str(servers) + " Servers -  Avg Interarrival time: " + str(
-                                interarrival) + "min"
-                            title += "\n Finite Horizon Statistics ( Replication Method )"
-                            headerbuilder = 1
-
-                elif f.startswith("finiteHorizon"):
-
-                    filepath = path + "/" + d + "/" + f
-
-                    with open(filepath) as jsonfile:
-                        data = json.load(jsonfile)
-                        values.append(data[t]["mean"])
-                        errors.append(data[t]["half_confidence_interval"])
+        for subdict in res[t]:
+            values.append(float(subdict['mean']))
+            errors.append(float(subdict['half_confidence_interval']))
 
         x = [i for i in range(len(values))]
+
         plt.errorbar(x, values, errors, fmt='.')
-
-        if t.startswith("GLOBAL AVG WAIT"):
-
-            l = [wait for i in range(len(values))]
-            truevalue = np.array(l)
-            plt.plot(truevalue)
-
-        elif t.startswith("GLOBAL AVG DELAY"):
-
-            l = [delay for i in range(len(values))]
-            truevalue = np.array(l)
-            plt.plot(truevalue)
-
-        elif t.startswith("UTILIZATION"):
-
-            l = [utilization for i in range(len(values))]
-            truevalue = np.array(l)
-            plt.plot(truevalue)
 
         plt.title(title)
         plt.savefig(path + "/" + t + ".png")
