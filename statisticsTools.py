@@ -37,23 +37,51 @@ transientTemplate = {
   "GLOBAL AVG WAIT" : [],
   "GLOBAL AVG DELAY" : [],
   "GLOBAL AVG NUMBER": [],
-  "QUEUE1 AVG WAIT" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
-  "QUEUE1 AVG DELAY" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
-  "QUEUE1 AVG NUMBER" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
-  "QUEUE2 AVG WAIT" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
-  "QUEUE2 AVG DELAY" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
-  "QUEUE2 AVG NUMBER" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
-  "QUEUE3 AVG WAIT" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
-  "QUEUE3 AVG DELAY" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
-  "QUEUE3 AVG NUMBER" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
-  "UTILIZATION1" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
-  "UTILIZATION2" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
-  "UTILIZATION3" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
-  "UTILIZATION4" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
-  "UTILIZATION5" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
-  "UTILIZATION6" : [{"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95}],
+  "QUEUE1 AVG WAIT" : [],
+  "QUEUE1 AVG DELAY" : [],
+  "QUEUE1 AVG NUMBER" : [],
+  "QUEUE2 AVG WAIT" : [],
+  "QUEUE2 AVG DELAY" : [],
+  "QUEUE2 AVG NUMBER" : [],
+  "QUEUE3 AVG WAIT" : [],
+  "QUEUE3 AVG DELAY" : [],
+  "QUEUE3 AVG NUMBER" : [],
+  "UTILIZATION1" : [],
+  "UTILIZATION2" : [],
+  "UTILIZATION3" : [],
   "JOBS": [],
 }
+
+
+def initialize_transient_organizer(organizer, job_number, transientList):
+    for t in organizer.keys():
+        for i in range(0, job_number):
+            if t not in ['global', 'c1', 'c2', 'c3', 'q1', 'q2', 'q3', 'mean_conditional_slowdown']:
+                organizer[t].append([])
+            else:
+                for t2 in organizer[t].keys():
+                    organizer[t][t2].append([])
+
+    for transientStats in transientList:
+        for t in transientStats.keys():
+            if t in ['seed', 'arrival_stream', 'service_stream', 'observation_period', 'interarrivals', 'k',
+                     'batch_size', 'servers', 'acquisition_time', 'index']:
+                continue
+
+            if t not in ['global', 'c1', 'c2', 'c3', 'q1', 'q2', 'q3', 'mean_conditional_slowdown']:
+                for i in range(0, len(transientStats[t])):
+                    try:
+                        organizer[t][i].append(transientStats[t][i])
+                    except:
+                        continue
+            else:
+                for t2 in organizer[t].keys():
+                    for i in range(0, len(transientStats[t][t2])):
+                        try:
+                            organizer[t][t2][i].append(transientStats[t][t2][i])
+                        except:
+                            continue
+    return organizer
 
 
 def analyticalResults( interarrivals ):
@@ -179,7 +207,6 @@ def batchMeans( path, batchDictionary, model ):
         res["GLOBAL AVG NUMBER"]["stdev"] = stdev
         res["GLOBAL AVG NUMBER"]["half_confidence_interval"] = half_interval
 
-
         for j in range( 1, 4 ):
           mean, stdev, half_interval = estimate( avg_wait_queues[j-1] )
           res["QUEUE" + str(j) + " AVG WAIT"]["mean"] = mean
@@ -205,87 +232,6 @@ def batchMeans( path, batchDictionary, model ):
           res["UTILIZATION"+ str(j) ]["half_confidence_interval"] = half_interval
 
         json.dump( res, results, indent = 4  )
-
-    results.close()
-
-
-def finiteHorizon(path, finiteHorizonDictionary, model):
-    # -----------------------------------------------------------
-    # This technique is used to compute Transient statistics
-    # ( "finite horizon" point and interval estimations ).
-    # -----------------------------------------------------------
-    global transientTemplate
-
-    SERVERS = int(finiteHorizonDictionary["servers"])
-
-    transientTemplate["interarrival"] = finiteHorizonDictionary["interarrivals"]
-    transientTemplate["seed"] = finiteHorizonDictionary["seed"]
-    transientTemplate["servers"] = finiteHorizonDictionary["servers"]
-
-    avg_wait_global = finiteHorizonDictionary["global"]["avg_wait"][1:]
-    avg_delay_global = finiteHorizonDictionary["global"]["avg_delay"][1:]
-    avg_number_global = finiteHorizonDictionary["global"]["avg_number"][1:]
-
-    avg_utilizations = []
-
-    for j in range(SERVERS):
-        avg_utilizations.append(finiteHorizonDictionary["avg_utilization" + str(j + 1)][1:])
-
-    if model == 0:
-        avg_wait_queues = [finiteHorizonDictionary["c1"]["avg_wait"][1:], finiteHorizonDictionary["c2"]["avg_wait"][1:],
-                           finiteHorizonDictionary["c3"]["avg_wait"][1:]]
-        avg_delay_queues = [finiteHorizonDictionary["c1"]["avg_delay"][1:], finiteHorizonDictionary["c2"]["avg_delay"][1:],
-                            finiteHorizonDictionary["c3"]["avg_delay"][1:]]
-        avg_number_queues = [finiteHorizonDictionary["c1"]["avg_number"][1:], finiteHorizonDictionary["c2"]["avg_number"][1:],
-                             finiteHorizonDictionary["c3"]["avg_number"][1:]]
-
-    with open(path + "/finiteHorizon.json", "a") as results:
-
-        res = transientTemplate
-
-        res["interarrival"] = finiteHorizonDictionary["interarrivals"]
-        res["seed"] = finiteHorizonDictionary["seed"]
-        res["servers"] = finiteHorizonDictionary["servers"]
-
-        mean, stdev, half_interval = estimate(avg_wait_global)
-        res["GLOBAL AVG WAIT"]["mean"] = mean
-        res["GLOBAL AVG WAIT"]["stdev"] = stdev
-        res["GLOBAL AVG WAIT"]["half_confidence_interval"] = half_interval
-
-        mean, stdev, half_interval = estimate(avg_delay_global)
-        res["GLOBAL AVG DELAY"]["mean"] = mean
-        res["GLOBAL AVG DELAY"]["stdev"] = stdev
-        res["GLOBAL AVG DELAY"]["half_confidence_interval"] = half_interval
-
-        mean, stdev, half_interval = estimate(avg_number_global)
-        res["GLOBAL AVG NUMBER"]["mean"] = mean
-        res["GLOBAL AVG NUMBER"]["stdev"] = stdev
-        res["GLOBAL AVG NUMBER"]["half_confidence_interval"] = half_interval
-
-        if model == 0:
-            for j in range(1, 4):
-                mean, stdev, half_interval = estimate(avg_wait_queues[j - 1])
-                res["QUEUE" + str(j) + " AVG WAIT"]["mean"] = mean
-                res["QUEUE" + str(j) + " AVG WAIT"]["stdev"] = stdev
-                res["QUEUE" + str(j) + " AVG WAIT"]["half_confidence_interval"] = half_interval
-
-                mean, stdev, half_interval = estimate(avg_delay_queues[j - 1])
-                res["QUEUE" + str(j) + " AVG DELAY"]["mean"] = mean
-                res["QUEUE" + str(j) + " AVG DELAY"]["stdev"] = stdev
-                res["QUEUE" + str(j) + " AVG DELAY"]["half_confidence_interval"] = half_interval
-
-                mean, stdev, half_interval = estimate(avg_number_queues[j - 1])
-                res["QUEUE" + str(j) + " AVG NUMBER"]["mean"] = mean
-                res["QUEUE" + str(j) + " AVG NUMBER"]["stdev"] = stdev
-                res["QUEUE" + str(j) + " AVG NUMBER"]["half_confidence_interval"] = half_interval
-
-        for j in range(1, SERVERS + 1):
-            mean, stdev, half_interval = estimate(avg_utilizations[j - 1])
-            res["UTILIZATION" + str(j)]["mean"] = mean
-            res["UTILIZATION" + str(j)]["stdev"] = stdev
-            res["UTILIZATION" + str(j)]["half_confidence_interval"] = half_interval
-
-        json.dump(res, results, indent=4)
 
     results.close()
 
@@ -428,8 +374,16 @@ def transientPlotter(path, model, transientList):
 
     interarrivals = transientTemplate["interarrival"]
     SERVERS = int(transientTemplate["servers"])
-    title = \
-        ""
+    title = ""
+
+    if model == 1:
+        center_name_1 = "c1"
+        center_name_2 = "c2"
+        center_name_3 = "c3"
+    else:
+        center_name_1 = "q1"
+        center_name_2 = "q2"
+        center_name_3 = "q3"
 
     #SE FISSATO
     delay, wait, utilization = analyticalResults(interarrivals)
@@ -444,46 +398,19 @@ def transientPlotter(path, model, transientList):
         "avg_utilization5": [],
         "avg_utilization6": [],
         "global": {"avg_wait": [], "avg_delay": [], "avg_number": []},
-        "c1": {"avg_wait": [], "avg_delay": [], "avg_number": []},
-        "c2": {"avg_wait": [], "avg_delay": [], "avg_number": []},
-        "c3": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+        center_name_1: {"avg_wait": [], "avg_delay": [], "avg_number": []},
+        center_name_2: {"avg_wait": [], "avg_delay": [], "avg_number": []},
+        center_name_3: {"avg_wait": [], "avg_delay": [], "avg_number": []},
         "mean_conditional_slowdown": {"(1.24)": [], "(2.65)": [], "(4.42)": [], "(8.26)": []}
     }
 
     jobs_acquisition = transientList[0]['index']
+    job_number = len(transientList[0]['index'])
 
-    for t in organizer.keys():
-        for i in range(0, len(transientList[0]['acquisition_time'])):
-            if t not in ['global', 'c1', 'c2', 'c3', 'mean_conditional_slowdown']:
-                organizer[t].append([])
-            else:
-                for t2 in organizer[t].keys():
-                    organizer[t][t2].append([])
+    organizer = initialize_transient_organizer(organizer, job_number, transientList)
 
-    for transientStats in transientList:
-        for t in transientStats.keys():
-            if t in ['seed', 'arrival_stream', 'service_stream', 'observation_period', 'interarrivals', 'k',
-                     'batch_size', 'servers', 'acquisition_time', 'index']:
-                continue
-
-
-            if t not in ['global', 'c1', 'c2', 'c3', 'mean_conditional_slowdown']:
-                for i in range(0, len(transientStats[t])):
-                    try:
-                        organizer[t][i].append(transientStats[t][i])
-                    except:
-                        continue
-            else:
-                for t2 in organizer[t].keys():
-                    for i in range(0, len(transientStats[t][t2])):
-                        try:
-                            organizer[t][t2][i].append(transientStats[t][t2][i])
-                        except:
-                            continue
-
-    avg_wait_global = []
-    avg_delay_global = []
-    avg_number_global = []
+    avg_wait_global, avg_delay_global, avg_number_global, avg_utilizations, avg_wait_queues, \
+    avg_delay_queues, avg_number_queues = [], [], [], [], [], [], []
 
     for i in range(0, len(organizer["global"]["avg_wait"])):
         avg_wait_global.append(organizer["global"]["avg_wait"][i])
@@ -492,18 +419,36 @@ def transientPlotter(path, model, transientList):
     for i in range(0, len(organizer["global"]["avg_number"])):
         avg_number_global.append(organizer["global"]["avg_number"][i])
 
-    avg_utilizations = []
-
     for j in range(SERVERS):
-        avg_utilizations.append(organizer["avg_utilization" + str(j + 1)][1:])
+        avg_utilizations.append([])
+        avg_wait_queues.append([])
+        avg_delay_queues.append([])
+        avg_number_queues.append([])
 
-    if model == 0:
-        avg_wait_queues = [organizer["c1"]["avg_wait"][1:], organizer["c2"]["avg_wait"][1:],
-                           organizer["c3"]["avg_wait"][1:]]
-        avg_delay_queues = [organizer["c1"]["avg_delay"][1:], organizer["c2"]["avg_delay"][1:],
-                            organizer["c3"]["avg_delay"][1:]]
-        avg_number_queues = [organizer["c1"]["avg_number"][1:], organizer["c2"]["avg_number"][1:],
-                             organizer["c3"]["avg_number"][1:]]
+    for j in range(1, SERVERS +1):
+        for i in range(0, len(organizer["avg_utilization" + str(j)])):
+            avg_utilizations[j-1].append(organizer["avg_utilization" + str(j)][i])
+
+    for i in range(0, len(organizer[center_name_1]["avg_wait"])):
+        avg_wait_queues[0].append(organizer[center_name_1]["avg_wait"][i])
+    for i in range(0, len(organizer[center_name_2]["avg_wait"])):
+        avg_wait_queues[1].append(organizer[center_name_2]["avg_wait"][i])
+    for i in range(0, len(organizer[center_name_3]["avg_wait"])):
+        avg_wait_queues[2].append(organizer[center_name_3]["avg_wait"][i])
+
+    for i in range(0, len(organizer[center_name_1]["avg_delay"])):
+        avg_delay_queues[0].append(organizer[center_name_1]["avg_delay"][i])
+    for i in range(0, len(organizer[center_name_2]["avg_delay"])):
+        avg_delay_queues[1].append(organizer[center_name_2]["avg_delay"][i])
+    for i in range(0, len(organizer[center_name_3]["avg_delay"])):
+        avg_delay_queues[2].append(organizer[center_name_3]["avg_delay"][i])
+
+    for i in range(0, len(organizer[center_name_1]["avg_number"])):
+        avg_number_queues[0].append(organizer[center_name_1]["avg_number"][i])
+    for i in range(0, len(organizer[center_name_2]["avg_number"])):
+        avg_number_queues[1].append(organizer[center_name_2]["avg_number"][i])
+    for i in range(0, len(organizer[center_name_3]["avg_number"])):
+        avg_number_queues[2].append(organizer[center_name_3]["avg_number"][i])
 
     res = transientTemplate
 
@@ -511,13 +456,18 @@ def transientPlotter(path, model, transientList):
 
     for j in range(0, len(avg_number_global)):
         res["GLOBAL AVG NUMBER"].append({"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95})
-
-    for j in range(0, len(avg_wait_global)):
-        res["GLOBAL AVG WAIT"].append({"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95})
-
-    for j in range(0, len(avg_delay_global)):
+        res["GLOBAL AVG WAIT"].append({"mean": 0.0, "half_confidence_interval": 0.0, "stdev": 0.0, "confidence": 95})
         res["GLOBAL AVG DELAY"].append({"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95})
 
+    for j in range(1, 4):
+        for k in range(0, len(avg_number_global)):
+            res["QUEUE" + str(j) + " AVG NUMBER"].append({"mean": 0.0, "half_confidence_interval": 0.0, "stdev": 0.0, "confidence": 95})
+            res["QUEUE" + str(j) + " AVG WAIT"].append({"mean": 0.0, "half_confidence_interval": 0.0, "stdev": 0.0, "confidence": 95})
+            res["QUEUE" + str(j) + " AVG DELAY"].append({"mean": 0.0, "half_confidence_interval": 0.0, "stdev": 0.0, "confidence": 95})
+
+    for j in range(1, 4):
+        for k in range(0, len(avg_number_global)):
+            res["UTILIZATION" + str(j)].append({"mean": 0.0, "half_confidence_interval": 0.0, "stdev": 0.0, "confidence": 95})
 
     for j in range(0, len(avg_number_global)):
         if(len(avg_number_global[j]) >= 4):
@@ -540,33 +490,38 @@ def transientPlotter(path, model, transientList):
             res["GLOBAL AVG DELAY"][j]["stdev"] = stdev
             res["GLOBAL AVG DELAY"][j]["half_confidence_interval"] = half_interval
 
+    for j in range(1, 4):
+        for k in range(0, len(avg_wait_queues[j-1])):
+            if len(avg_wait_queues[j-1]) >= 4:
+                mean, stdev, half_interval = estimate(avg_wait_queues[j-1][k])
+                res["QUEUE" + str(j) + " AVG WAIT"][k]["mean"] = mean
+                res["QUEUE" + str(j) + " AVG WAIT"][k]["stdev"] = stdev
+                res["QUEUE" + str(j) + " AVG WAIT"][k]["half_confidence_interval"] = half_interval
 
-    # if model == 0:
-    #     for j in range(1, 4):
-    #         mean, stdev, half_interval = estimate(avg_wait_queues[j - 1])
-    #         res["QUEUE" + str(j) + " AVG WAIT"]["mean"] = mean
-    #         res["QUEUE" + str(j) + " AVG WAIT"]["stdev"] = stdev
-    #         res["QUEUE" + str(j) + " AVG WAIT"]["half_confidence_interval"] = half_interval
-    #
-    #         mean, stdev, half_interval = estimate(avg_delay_queues[j - 1])
-    #         res["QUEUE" + str(j) + " AVG DELAY"]["mean"] = mean
-    #         res["QUEUE" + str(j) + " AVG DELAY"]["stdev"] = stdev
-    #         res["QUEUE" + str(j) + " AVG DELAY"]["half_confidence_interval"] = half_interval
-    #
-    #         mean, stdev, half_interval = estimate(avg_number_queues[j - 1])
-    #         res["QUEUE" + str(j) + " AVG NUMBER"]["mean"] = mean
-    #         res["QUEUE" + str(j) + " AVG NUMBER"]["stdev"] = stdev
-    #         res["QUEUE" + str(j) + " AVG NUMBER"]["half_confidence_interval"] = half_interval
-    #
-    # for j in range(1, SERVERS + 1):
-    #      mean, stdev, half_interval = estimate(avg_utilizations[j - 1])
-    #      res["UTILIZATION" + str(j)]["mean"] = mean
-    #      res["UTILIZATION" + str(j)]["stdev"] = stdev
-    #      res["UTILIZATION" + str(j)]["half_confidence_interval"] = half_interval
+        for k in range(0, len(avg_delay_queues[j-1])):
+            if len(avg_delay_queues[j-1]) >= 4:
+                mean, stdev, half_interval = estimate(avg_delay_queues[j-1][k])
+                res["QUEUE" + str(j) + " AVG DELAY"][k]["mean"] = mean
+                res["QUEUE" + str(j) + " AVG DELAY"][k]["stdev"] = stdev
+                res["QUEUE" + str(j) + " AVG DELAY"][k]["half_confidence_interval"] = half_interval
+
+        for k in range(0, len(avg_number_queues[j-1])):
+            if len(avg_number_queues[j-1]) >= 4:
+                mean, stdev, half_interval = estimate(avg_number_queues[j-1][k])
+                res["QUEUE" + str(j) + " AVG NUMBER"][k]["mean"] = mean
+                res["QUEUE" + str(j) + " AVG NUMBER"][k]["stdev"] = stdev
+                res["QUEUE" + str(j) + " AVG NUMBER"][k]["half_confidence_interval"] = half_interval
+
+    for j in range(1, SERVERS + 1):
+        for k in range(0, len(avg_utilizations[j-1])):
+             mean, stdev, half_interval = estimate(avg_utilizations[j - 1][k])
+             res["UTILIZATION" + str(j)][k]["mean"] = mean
+             res["UTILIZATION" + str(j)][k]["stdev"] = stdev
+             res["UTILIZATION" + str(j)][k]["half_confidence_interval"] = half_interval
 
     for t in res.keys():
 
-        if t in ["interarrival", "servers", "seed"]:
+        if t in ["interarrival", "servers", "seed", "JOBS"]:
             continue
 
         headerbuilder = 0
@@ -582,13 +537,10 @@ def transientPlotter(path, model, transientList):
 
         errors = []
 
-        if t in ['GLOBAL AVG DELAY', 'GLOBAL AVG WAIT', 'GLOBAL AVG NUMBER']:
-            x = [jobs for jobs in res['JOBS']]
-            for subdict in res[t]:
-                values.append(subdict['mean'])
-                errors.append(subdict['half_confidence_interval'])
-        else:
-            x = [i for i in range(0, len(values))]
+        x = [jobs for jobs in res['JOBS']]
+        for subdict in res[t]:
+            values.append(subdict['mean'])
+            errors.append(subdict['half_confidence_interval'])
 
         title += "\n" + str(SERVERS) + " Servers -  Avg Interarrival time: " + str(interarrivals) + "min"
         title += "\n Finite Horizon Statistics"
@@ -600,6 +552,3 @@ def transientPlotter(path, model, transientList):
         plt.savefig(path + "/" + t + ".png")
         plt.legend(seeds)
         plt.close()
-
-
-

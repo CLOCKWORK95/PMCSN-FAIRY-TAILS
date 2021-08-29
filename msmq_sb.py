@@ -11,7 +11,6 @@
 # * ---------------------------------------------------------------------------------------------------------------------- 
 # */
 
-from ssq_abs_network import STEADYLAMBDA
 from statisticsTools import batchMeans, finiteHorizon, steadyStatePlotter, transientPlotter
 from probabilityDistributions import getLambda, setLambda
 from rngs import getSeed, plantSeeds
@@ -25,7 +24,7 @@ STOP  =   840.0                                                       # terminal
 replicas = int(sys.argv[1])
 STEADYLAMBDA = 1
 QUEUES = 3                                                            # number of queues in the node
-SERVERS = 6                                                           # number of servers in the node
+SERVERS = 1                                                           # number of servers in the node
 multiqueue = None                                                     # multi queues size-based structure 
 X1 = 1.5                                                              # first size boundary                [ minutes ]
 X2 = 4.5                                                              # second size boundary               [ minutes ]
@@ -43,17 +42,12 @@ batchmean = {
   "avg_utilization1" : [],
   "avg_utilization2" : [],
   "avg_utilization3" : [],
-  "avg_utilization4" : [],
-  "avg_utilization5" : [],
-  "avg_utilization6" : [],
-  "avg_utilization7" : [],
-  "avg_utilization8" : [],
-  "avg_utilization9" : [],
   "global" : { "avg_wait": [] , "avg_delay":[], "avg_number" : []  },
   "q1" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : [] },
   "q2" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : []  },
   "q3" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : []  },
-  "mean_conditional_slowdown" : { "(1.24)": [] , "(2.65)": [] , "(4.42)": [] , "(8.26)": []  }
+  "mean_conditional_slowdown" : { "(1.24)": [] , "(2.65)": [] , "(4.42)": [] , "(8.26)": []  },
+  "index" : []
 }
 
 transientStatistics = batchmean
@@ -62,6 +56,7 @@ batch_index = 0
 
 LAMBDA = 0.0
 SIMULATION_SEED = 0
+transientList = list()
 
 output_dictionary = {
   "0" : "Average Waiting Time (global)",
@@ -74,6 +69,33 @@ output_dictionary = {
 }
 
 ''' ----------------- Next Event Data Structures --------------------------------------------------------------------------------------- '''
+
+
+def resetTransientStatistics():
+  global transientStatistics
+
+  transientStatistics = {
+    "seed": 0,
+    "arrival_stream": 0,
+    "service_stream": 1,
+    "observation_period": 0,
+    "interarrivals": 0.0,
+    "batch_size": 0,
+    "k": 0,
+    "servers": 0,
+    "acquisition_time": [],
+    "avg_utilization1": [],
+    "avg_utilization2": [],
+    "avg_utilization3": [],
+    "global": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+    "q1": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+    "q2": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+    "q3": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+    "mean_conditional_slowdown": {"(1.24)": [], "(2.65)": [], "(4.42)": [], "(8.26)": []},
+    "index": []
+  }
+  return True
+
 
 def NextEvent(events):
 # ---------------------------------------
@@ -207,12 +229,13 @@ def transientStats():
       queue_population[j] = 0.0
   
   d = 0.0
-  for j in range( 0, QUEUES ):
-    try:
-      d += ( area_queues[j] / index_queues[j] ) * ( index_queues[j] / index )
-    except:
-      d = 0.0
-  try: 
+
+  for j in range(0, QUEUES):
+    percentage = index_queues[j] / index
+    if index_queues[j] != 0:
+      d += (area_queues[j] / index_queues[j]) * percentage
+
+  try:
     global_wait = area / index
     global_delay = d
     global_number = area / t.current
@@ -237,6 +260,7 @@ def transientStats():
   transientStatistics["q3"]["avg_number"].append(queue_population[2])
 
   transientStatistics["acquisition_time"].append(t.current)
+  transientStatistics["index"].append(index)
 
   try:
     transientStatistics["mean_conditional_slowdown"]["(1.24)"].append( 1 + (area_queues[0] / index_queues[0]) / 1.24 )
@@ -250,7 +274,7 @@ def transientStats():
     transientStatistics["mean_conditional_slowdown"]["(8.26)"].append( 0.0 )
 
   for s in range( 1,  SERVERS + 1 ):
-    transientStatistics["avg_utilization" + str(s)].append( sum[s].service / (t.current-START) )
+    transientStatistics["avg_utilization" + str(s)].append( sum[s].service / t.current )
   
  
 
@@ -336,6 +360,7 @@ def serve():
 ''' ---------------------------------------------- Simulation settings ---------------------------------------------------------------------- '''
 
 choice = 0
+type = 0
 print(" Do you want to record a track of an output statistics?\n")
 print(" Finite Horizon ( Transient Statistics ) ............................. 0")
 print(" Infinite Horizon ( Steady-State Statistics - Batch Means)  .......... 1")
@@ -347,6 +372,11 @@ k = 0
 if choice == 1:
   b = int( input("\n Type a size for the batch : ") )
   k = int( input("\n Type a number of batches : "))
+else:
+  print(" Which type of Transient Simulation?\n")
+  print(" Fixed Interarrival rate ............................. 0")
+  print(" Variable ............................................ 1")
+  type = int(input("\n Please, type your choice here: "))
 
 f = open("MSMQ_sb/id.txt", "r")
 old_id = f.readline()
@@ -375,7 +405,8 @@ plantSeeds(0)
 r = 0
 
 for i in range( 0, replicas ):
-  
+  TRANSIENT_INDEX = 1.2
+  TRANSIENT_MULTIPLIER = 8
   r += 1
   
   try:
@@ -412,7 +443,7 @@ for i in range( 0, replicas ):
   SIMULATION_SEED = getSeed()
 
   if choice == 0:
-    LAMBDA = 4
+    LAMBDA = 6
     setLambda( LAMBDA )
   else:
     LAMBDA = STEADYLAMBDA
@@ -447,27 +478,36 @@ for i in range( 0, replicas ):
         NextBatch()
         batch_index += 1
         old_index = index
-    
-    if ( choice == 0 and t.current >= 120 and period == 0):
-      period += 1
-      setLambda( 3   )
-      LAMBDA = getLambda()
-    if ( choice == 0 and t.current >= 300 and period == 1):
-      period += 1
-      setLambda( 4 )
-      LAMBDA = getLambda()
-    if ( choice == 0 and t.current >= 420 and period == 2):
-      period += 1
-      setLambda( 2  )
-      LAMBDA = getLambda()
-    if ( choice == 0 and t.current >= 720 and period == 3):
-      period += 1
-      setLambda( 5 )
-      LAMBDA = getLambda()
+
+    if (type == 1):
+      if (choice == 0 and t.current >= 120 and period == 0):
+        period += 1
+        setLambda(3)
+        LAMBDA = getLambda()
+        resetTransientStatistics()
+
+      if (choice == 0 and t.current >= 300 and period == 1):
+        period += 1
+        setLambda(4)
+        LAMBDA = getLambda()
+        resetTransientStatistics()
+
+      if (choice == 0 and t.current >= 420 and period == 2):
+        period += 1
+        setLambda(2)
+        LAMBDA = getLambda()
+        resetTransientStatistics()
+
+      if (choice == 0 and t.current >= 720 and period == 3):
+        period += 1
+        setLambda(5)
+        LAMBDA = getLambda()
+        resetTransientStatistics()
 
     disp += 1
-    if ( choice == 0 and disp % mod == 0 ):
+    if (choice == 0 and index % (round(TRANSIENT_INDEX * TRANSIENT_MULTIPLIER)) == 0 and index != 0):
       transientStats()
+      TRANSIENT_MULTIPLIER = TRANSIENT_MULTIPLIER * TRANSIENT_INDEX
     #------------------------------------------------------------------------------------------------------------------------------
 
     e = NextEvent(events)                                               # next event index 
@@ -540,45 +580,11 @@ for i in range( 0, replicas ):
   #EndWhile
 
   f.close()
-
-  if ( index_queues[0] != 0 and index_queues[1] != 0 and index_queues[2] != 0 and index != 0):
-
-    print("\n MULTISERVER MULTIQUEUE SIZE-BASED SCHEDULING - SEED : "+ str(SIMULATION_SEED) +" \n")
-    print("\n for {0:1d} jobs the service node statistics are:\n".format(index))
-    print("  avg interarrivals .. = {0:6.2f}".format((events[0].t-START) / index))
-    print("  avg wait ........... = {0:6.2f}".format(area / index))
-    d = 0.0
-    for j in range( 0, QUEUES ):
-      d += ( area_queues[j] / index_queues[j] ) * ( index_queues[j] / index )
-    print("  avg delay .......... = {0:6.2f}".format( d ))
-    print("  avg # in node ...... = {0:6.2f}".format(area / (t.current - START) ) )
-      
-
-    for j in range ( 0, QUEUES ):
-      print("\n  QUEUE N° : " + str(j+1) + "  [avg job size = {0:6.2f}".format(tot_services_for_queue[j]/index_queues[j]) + " minutes | served clients = {0:6.2f}".format(index_queues[j]/(index_queues[0]+index_queues[1]+index_queues[2])) + " %]")
-      print("  avg wait ........... = {0:6.2f}".format(area_queues[j] / index_queues[j] + tot_services_for_queue[j] / index_queues[j]))
-      print("  avg delay .......... = {0:6.2f}".format(area_queues[j] / index_queues[j]))
-      print("  avg # in queue ..... = {0:6.2f}".format(area_queues[j] / (t.current-START)))
-
-    print("\n  MEAN CONDITIONAL SLOWDOWN " )
-    print("  x = 1.24 minutes ... = {0:6.2f}".format( 1 + (area_queues[0] / index_queues[0]) / 1.24 ))
-    print("  x = 2.65 minutes ... = {0:6.2f}".format( 1 + (area_queues[1] / index_queues[1]) / 2.65 ))
-    print("  x = 4.42 minutes ... = {0:6.2f}".format( 1 + (area_queues[1] / index_queues[1]) / 4.42 ))
-    print("  x = 8.26 minutes ... = {0:6.2f}".format( 1 + (area_queues[2] / index_queues[2]) / 8.26 ))
-
-    print("\n The server statistics are:\n")
-    print("    server     utilization     avg service        share\n")
-
-    try:
-      for s in range(1,SERVERS+1):
-        print("{0:8d} {1:14.3f} {2:15.2f} {3:15.3f}".format(s, sum[s].service / (t.current-START), sum[s].service / sum[s].served,float(sum[s].served) / index))
-    except:
-      print("")
     
   # Record simulation results on a header JSON file
 
   if (choice == 0 ):
-
+    transientList.append(transientStatistics)
     transientStatistics["seed"] = SIMULATION_SEED
     transientStatistics["interarrivals"] = LAMBDA
     transientStatistics["observation_period"] = STOP
@@ -591,31 +597,7 @@ for i in range( 0, replicas ):
 
     finiteHorizon(transientStatistics)
 
-    transientStatistics = {
-      "seed": 0,
-      "arrival_stream": 0,
-      "service_stream": 1,
-      "observation_period": 0,
-      "interarrivals": 0.0,
-      "batch_size": 0,
-      "k": 0,
-      "servers": 0,
-      "acquisition_time": [],
-      "avg_utilization1": [],
-      "avg_utilization2": [],
-      "avg_utilization3": [],
-      "avg_utilization4": [],
-      "avg_utilization5": [],
-      "avg_utilization6": [],
-      "avg_utilization7": [],
-      "avg_utilization8": [],
-      "avg_utilization9": [],
-      "global": {"avg_wait": [], "avg_delay": [], "avg_number": []},
-      "q1": {"avg_wait": [], "avg_delay": [], "avg_number": []},
-      "q2": {"avg_wait": [], "avg_delay": [], "avg_number": []},
-      "q3": {"avg_wait": [], "avg_delay": [], "avg_number": []},
-      "mean_conditional_slowdown": {"(1.24)": [], "(2.65)": [], "(4.42)": [], "(8.26)": []}
-    }
+    resetTransientStatistics()
 
   else:
 
@@ -645,12 +627,6 @@ for i in range( 0, replicas ):
       "avg_utilization1" : [],
       "avg_utilization2" : [],
       "avg_utilization3" : [],
-      "avg_utilization4" : [],
-      "avg_utilization5" : [],
-      "avg_utilization6" : [],
-      "avg_utilization7" : [],
-      "avg_utilization8" : [],
-      "avg_utilization9" : [],
       "global" : { "avg_wait": [] , "avg_delay" : [], "avg_number" : []  },
       "q1" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : [] },
       "q2" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : []  },
@@ -661,4 +637,4 @@ for i in range( 0, replicas ):
 if choice == 1:
   steadyStatePlotter( dirName, 0 )
 else:
-  transientPlotter( dirName, 0 )
+  transientPlotter( dirName, 0, transientList)
