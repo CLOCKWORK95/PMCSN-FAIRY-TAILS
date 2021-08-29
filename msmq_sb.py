@@ -73,6 +73,32 @@ output_dictionary = {
 
 ''' ----------------- Next Event Data Structures --------------------------------------------------------------------------------------- '''
 
+def resetTransientStatisticsdict():
+  global transientStatistics
+ 
+  transientStatistics = {
+    "seed": 0,
+    "arrival_stream": 0,
+    "service_stream": 1,
+    "observation_period": 0,
+    "interarrivals": 0.0,
+    "batch_size": 0,
+    "k": 0,
+    "servers": 0,
+    "acquisition_time": [],
+    "avg_utilization1": [],
+    "avg_utilization2": [],
+    "avg_utilization3": [],
+    "avg_utilization4": [],
+    "avg_utilization5": [],
+    "avg_utilization6": [],
+    "global": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+    "q1": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+    "q2": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+    "q3": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+    "mean_conditional_slowdown": {"(1.24)": [], "(2.65)": [], "(4.42)": [], "(8.26)": []},
+    "index": []
+  }
 
 def resetTransientStatistics():
   global START
@@ -235,11 +261,10 @@ def transientStats():
         d += (area_queues[j] / index_queues[j]) * percentage
 
     if index != 0: global_wait = area / index
+    else: global_wait = 0.0
     global_delay = d
     global_number = area / t.current
-
-    global_wait = 0.0
-    global_number = 0.0
+    
 
     transientStatistics["global"]["avg_wait"].append(global_wait)
     transientStatistics["global"]["avg_delay"].append(global_delay)
@@ -322,18 +347,6 @@ def transientStats():
     for s in range( 1,  SERVERS + 1 ):
       if t.current != START: transientStatistics["avg_utilization" + str(s)].append( sum[s].service / (t.current-START) )
       else: transientStatistics["avg_utilization" + str(s)].append( transientStatistics["avg_utilization" + str(s)][len(transientStatistics["avg_utilization" + str(s)])-1] )
-
-    area = 0                                                   
-    index_queues  = [ 0, 0, 0 ]                                           
-    area_queues   = [ 0.0, 0.0, 0.0 ]                                    
-    tot_services_for_queue = [ 0.0, 0.0, 0.0 ]
-    sum = [ accumSum() for i in range( 0, SERVERS + 1 ) ]
-
-    for s in range( 1, SERVERS + 1 ):  
-      sum[s].service = 0.0
-      sum[s].served  = 0
-
-    START = t.current
 
 
 
@@ -501,7 +514,7 @@ for i in range( 0, replicas ):
   SIMULATION_SEED = getSeed()
 
   if choice == 0:
-    LAMBDA = 1
+    LAMBDA = 2.5
     setLambda( LAMBDA )
   else:
     LAMBDA = STEADYLAMBDA
@@ -542,25 +555,25 @@ for i in range( 0, replicas ):
 
       if (choice == 0 and t.current >= 120 and period == 0):
         period += 1
-        setLambda(3)
+        setLambda(1.5)
         LAMBDA = getLambda()
         resetTransientStatistics()
 
       if (choice == 0 and t.current >= 300 and period == 1):
         period += 1
-        setLambda(4)
+        setLambda(2.5)
         LAMBDA = getLambda()
         resetTransientStatistics()
 
       if (choice == 0 and t.current >= 420 and period == 2):
         period += 1
-        setLambda(2)
+        setLambda(1)
         LAMBDA = getLambda()
         resetTransientStatistics()
 
       if (choice == 0 and t.current >= 720 and period == 3):
         period += 1
-        setLambda(5)
+        setLambda(3.5)
         LAMBDA = getLambda()
         resetTransientStatistics()
 
@@ -657,7 +670,7 @@ for i in range( 0, replicas ):
 
     finiteHorizon(transientStatistics)
 
-    resetTransientStatistics()
+    resetTransientStatisticsdict()
 
   else:
 

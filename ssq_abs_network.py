@@ -22,7 +22,7 @@ from rngs import random
 START =      0.0                                                      # initial time of the observation period      [minutes]
 STOP  =    840.0                                                      # terminal (close the door) time              [minutes]
 replicas = int(sys.argv[1])
-STEADYLAMBDA = 2
+STEADYLAMBDA = 1
 NODES = 3                                                             # number of nodes (subsystems) in the network
 turn = 0
 
@@ -46,13 +46,13 @@ batchmean = {
   "avg_utilization4" : [],
   "avg_utilization5" : [],
   "avg_utilization6" : [],
-  "avg_utilization7" : [],
-  "avg_utilization8" : [],
-  "avg_utilization9" : [],
   "global" : { "avg_wait": [] , "avg_delay" : [], "avg_number" : []  },
   "c1" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : [] },
   "c2" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : []  },
   "c3" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : []  },
+  "c4" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : [] },
+  "c5" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : []  },
+  "c6" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : []  },
   "mean_conditional_slowdown" : { "(1.24)": [] , "(2.65)": [] , "(4.42)": [] , "(8.26)": []  },
   "index" : []
 }
@@ -80,7 +80,7 @@ def indexUniformSelection( min, max ):
   return indx
 
 
-def resetTransientStatistics():
+def resetTransientStatisticsdict():
   global transientStatistics
 
   transientStatistics = {
@@ -99,17 +99,38 @@ def resetTransientStatistics():
     "avg_utilization4": [],
     "avg_utilization5": [],
     "avg_utilization6": [],
-    "avg_utilization7": [],
-    "avg_utilization8": [],
-    "avg_utilization9": [],
     "global": {"avg_wait": [], "avg_delay": [], "avg_number": []},
     "c1": {"avg_wait": [], "avg_delay": [], "avg_number": []},
     "c2": {"avg_wait": [], "avg_delay": [], "avg_number": []},
     "c3": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+    "c4" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : [] },
+    "c5" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : []  },
+    "c6" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : []  },
     "mean_conditional_slowdown": {"(1.24)": [], "(2.65)": [], "(4.42)": [], "(8.26)": []},
     "index": []
   }
   return True
+
+def resetTransientStatistics():
+  global START
+  global area, index, number, sum
+  global batchmean, r
+  global simulationtype, transient_index
+
+  area = 0
+  for j in range ( 0, NODES ):
+    areas[j].node = 0.0
+    areas[j].queue = 0.0
+    nodes[j].index = 0
+
+  sum = [ accumSum() for i in range( 0, NODES + 1 ) ]
+
+  for s in range( 1, NODES + 1 ):  
+    sum[s].service = 0.0
+    sum[s].served  = 0
+
+  START = t.current
+  transient_index = index
 
 
 def selectNode( nodes ):
@@ -256,55 +277,121 @@ def transientStats():
   delay = [ 0.0 for i in range(NODES) ]
   queue_population = [ 0.0 for i in range(NODES) ]
 
-  for j in range ( 0, NODES ):
-    if nodes[j].index != 0:
-      wait[j] = areas[j].node / nodes[j].index
-      delay[j] = areas[j].queue / nodes[j].index
-      queue_population[j] = areas[j].queue / t.current
+  if simulationtype == 0:
+    for j in range ( 0, NODES ):
+      if nodes[j].index != 0:
+        wait[j] = areas[j].node / nodes[j].index
+        delay[j] = areas[j].queue / nodes[j].index
+        queue_population[j] = areas[j].queue / t.current
 
-  global_wait = area / index
-  global_number = area / t.current
-  
-  d = 0.0
-  for j in range(0, NODES):
-    percentage = nodes[j].index / index
-    if nodes[j].index != 0:
-      d += (areas[j].queue / nodes[j].index) * percentage
+    global_wait = area / index
+    global_number = area / t.current
+    
+    d = 0.0
+    for j in range(0, NODES):
+      percentage = nodes[j].index / index
+      if nodes[j].index != 0:
+        d += (areas[j].queue / nodes[j].index) * percentage
 
-  global_delay = d
+    global_delay = d
 
-  transientStatistics["global"]["avg_wait"].append(global_wait)
-  transientStatistics["global"]["avg_delay"].append(global_delay)
-  transientStatistics["global"]["avg_number"].append(global_number)
+    transientStatistics["global"]["avg_wait"].append(global_wait)
+    transientStatistics["global"]["avg_delay"].append(global_delay)
+    transientStatistics["global"]["avg_number"].append(global_number)
 
-  transientStatistics["c1"]["avg_wait"].append(wait[0])
-  transientStatistics["c2"]["avg_wait"].append(wait[1])
-  transientStatistics["c3"]["avg_wait"].append(wait[2])
+    if NODES >= 1: transientStatistics["c1"]["avg_wait"].append(wait[0])
+    if NODES >= 2: transientStatistics["c2"]["avg_wait"].append(wait[1])
+    if NODES >= 3: transientStatistics["c3"]["avg_wait"].append(wait[2])
+    if NODES >= 4: transientStatistics["c4"]["avg_wait"].append(wait[3])
+    if NODES >= 5: transientStatistics["c5"]["avg_wait"].append(wait[4])
+    if NODES >= 6: transientStatistics["c6"]["avg_wait"].append(wait[5])
 
-  transientStatistics["c1"]["avg_delay"].append(delay[0])
-  transientStatistics["c2"]["avg_delay"].append(delay[1])
-  transientStatistics["c3"]["avg_delay"].append(delay[2])
+    if NODES >= 1:transientStatistics["c1"]["avg_delay"].append(delay[0])
+    if NODES >= 2:transientStatistics["c2"]["avg_delay"].append(delay[1])
+    if NODES >= 3:transientStatistics["c3"]["avg_delay"].append(delay[2])
+    if NODES >= 4:transientStatistics["c4"]["avg_delay"].append(delay[3])
+    if NODES >= 5:transientStatistics["c5"]["avg_delay"].append(delay[4])
+    if NODES >= 6:transientStatistics["c6"]["avg_delay"].append(delay[5])
 
-  transientStatistics["c1"]["avg_number"].append(queue_population[0])
-  transientStatistics["c2"]["avg_number"].append(queue_population[1])
-  transientStatistics["c3"]["avg_number"].append(queue_population[2])
+    if NODES >= 1:transientStatistics["c1"]["avg_number"].append(queue_population[0])
+    if NODES >= 2:transientStatistics["c2"]["avg_number"].append(queue_population[1])
+    if NODES >= 3:transientStatistics["c3"]["avg_number"].append(queue_population[2])
+    if NODES >= 4:transientStatistics["c4"]["avg_number"].append(queue_population[3])
+    if NODES >= 5:transientStatistics["c5"]["avg_number"].append(queue_population[4])
+    if NODES >= 6:transientStatistics["c6"]["avg_number"].append(queue_population[5])
 
-  transientStatistics["acquisition_time"].append(t.current)
-  transientStatistics["index"].append(index)
+    transientStatistics["acquisition_time"].append(t.current)
+    transientStatistics["index"].append(index)
 
-  try:
-    transientStatistics["mean_conditional_slowdown"]["(1.24)"].append( 1 + (areas[0].queue / nodes[0].index) / 1.24 )
-    transientStatistics["mean_conditional_slowdown"]["(2.65)"].append( 1 + (areas[1].queue / nodes[1].index) / 2.65 )
-    transientStatistics["mean_conditional_slowdown"]["(4.42)"].append( 1 + (areas[1].queue / nodes[1].index) / 4.42 )
-    transientStatistics["mean_conditional_slowdown"]["(8.26)"].append( 1 + (areas[2].queue / nodes[2].index) / 8.26 )
-  except :
-    transientStatistics["mean_conditional_slowdown"]["(1.24)"].append( 0.0 )
-    transientStatistics["mean_conditional_slowdown"]["(2.65)"].append( 0.0 )
-    transientStatistics["mean_conditional_slowdown"]["(4.42)"].append( 0.0 )
-    transientStatistics["mean_conditional_slowdown"]["(8.26)"].append( 0.0 )
+    if nodes[0].index != 0: transientStatistics["mean_conditional_slowdown"]["(1.24)"].append( 1 + (areas[0].queue / nodes[0].index) / 1.24 )
+    if nodes[1].index != 0: transientStatistics["mean_conditional_slowdown"]["(2.65)"].append( 1 + (areas[1].queue / nodes[1].index) / 2.65 )
+    if nodes[1].index != 0: transientStatistics["mean_conditional_slowdown"]["(4.42)"].append( 1 + (areas[1].queue / nodes[1].index) / 4.42 )
+    if nodes[2].index != 0: transientStatistics["mean_conditional_slowdown"]["(8.26)"].append( 1 + (areas[2].queue / nodes[2].index) / 8.26 )
 
-  for s in range( 1,  NODES + 1 ):
-    transientStatistics["avg_utilization" + str(s)].append( sum[s].service / t.current )
+    for s in range( 1,  NODES + 1 ):
+      transientStatistics["avg_utilization" + str(s)].append( sum[s].service / t.current )
+
+  else:
+    for j in range ( 0, NODES ):
+      if nodes[j].index != 0:
+        wait[j] = areas[j].node / nodes[j].index
+        delay[j] = areas[j].queue / nodes[j].index
+      if t.current != START: queue_population[j] = areas[j].queue / t.current
+      
+
+    if index != transient_index: global_wait = area / (index-transient_index)
+    else: global_wait = 0
+    if t.current != START: global_number = area / (t.current-START)
+    else: global_number = 0
+    
+    d = 0.0
+    for j in range(0, NODES):
+      if index == transient_index: break
+      percentage = nodes[j].index / (index-transient_index)
+      if nodes[j].index != 0:
+        d += (areas[j].queue / nodes[j].index) * percentage
+    global_delay = d
+
+    transientStatistics["global"]["avg_wait"].append(global_wait)
+    transientStatistics["global"]["avg_delay"].append(global_delay)
+    transientStatistics["global"]["avg_number"].append(global_number)
+
+    if NODES >= 1: transientStatistics["c1"]["avg_wait"].append(wait[0])
+    if NODES >= 2: transientStatistics["c2"]["avg_wait"].append(wait[1])
+    if NODES >= 3: transientStatistics["c3"]["avg_wait"].append(wait[2])
+    if NODES >= 4: transientStatistics["c4"]["avg_wait"].append(wait[3])
+    if NODES >= 5: transientStatistics["c5"]["avg_wait"].append(wait[4])
+    if NODES >= 6: transientStatistics["c6"]["avg_wait"].append(wait[5])
+
+    if NODES >= 1:transientStatistics["c1"]["avg_delay"].append(delay[0])
+    if NODES >= 2:transientStatistics["c2"]["avg_delay"].append(delay[1])
+    if NODES >= 3:transientStatistics["c3"]["avg_delay"].append(delay[2])
+    if NODES >= 4:transientStatistics["c4"]["avg_delay"].append(delay[3])
+    if NODES >= 5:transientStatistics["c5"]["avg_delay"].append(delay[4])
+    if NODES >= 6:transientStatistics["c6"]["avg_delay"].append(delay[5])
+
+    if NODES >= 1:transientStatistics["c1"]["avg_number"].append(queue_population[0])
+    if NODES >= 2:transientStatistics["c2"]["avg_number"].append(queue_population[1])
+    if NODES >= 3:transientStatistics["c3"]["avg_number"].append(queue_population[2])
+    if NODES >= 4:transientStatistics["c4"]["avg_number"].append(queue_population[3])
+    if NODES >= 5:transientStatistics["c5"]["avg_number"].append(queue_population[4])
+    if NODES >= 6:transientStatistics["c6"]["avg_number"].append(queue_population[5])
+
+    transientStatistics["acquisition_time"].append(t.current)
+    transientStatistics["index"].append(index)
+
+    
+    if nodes[0].index != 0: transientStatistics["mean_conditional_slowdown"]["(1.24)"].append( 1 + (areas[0].queue / nodes[0].index) / 1.24 )
+    if nodes[1].index != 0: transientStatistics["mean_conditional_slowdown"]["(2.65)"].append( 1 + (areas[1].queue / nodes[1].index) / 2.65 )
+    if nodes[1].index != 0: transientStatistics["mean_conditional_slowdown"]["(4.42)"].append( 1 + (areas[1].queue / nodes[1].index) / 4.42 )
+    if nodes[2].index != 0: transientStatistics["mean_conditional_slowdown"]["(8.26)"].append( 1 + (areas[2].queue / nodes[2].index) / 8.26 )
+ 
+
+    for s in range( 1,  NODES + 1 ):
+      if t.current != START: transientStatistics["avg_utilization" + str(s)].append( sum[s].service / t.current )
+      else: transientStatistics["avg_utilization" + str(s)].append(transientStatistics["avg_utilization" + str(s)][len(transientStatistics["avg_utilization" + str(s)])-1] )
+
+
 
 
 class event:
@@ -334,6 +421,7 @@ class accumSum:
   served = None                                                       # number served                
 
 ''' ---------------------------------------------- Simulation settings ---------------------------------------------------------------------- '''
+simulationtype = 0
 choice = 0
 type = 0
 print(" Do you want to record a track of an output statistics?\n")
@@ -350,7 +438,7 @@ else:
   print(" Which type of Transient Simulation?\n")
   print(" Fixed Interarrival rate ............................. 0")
   print(" Variable ............................................ 1")
-  type = int(input("\n Please, type your choice here: "))
+  simulationtype = int(input("\n Please, type your choice here: "))
 
 
 f = open("MG1_abs_network/id.txt", "r")
@@ -415,7 +503,7 @@ for i in range( 0, replicas ):
   SIMULATION_SEED = getSeed()
 
   if choice == 0:
-    LAMBDA = 2
+    LAMBDA = 1
     setLambda( LAMBDA )
   else:
     LAMBDA = STEADYLAMBDA
@@ -437,6 +525,7 @@ for i in range( 0, replicas ):
   mod = 30
   old_index = 0
   batch_index = 0
+  transient_index = 0
 
   while ( ( events[0].x != 0 ) or ( number != 0 ) ):
 
@@ -447,28 +536,28 @@ for i in range( 0, replicas ):
         batch_index += 1
         old_index = index
 
-    if (type == 1):
+    if (simulationtype == 1):
       if ( choice == 0 and t.current >= 120 and period == 0):
         period += 1
-        setLambda( 3 )
+        setLambda( 1.5 )
         LAMBDA = getLambda()
         resetTransientStatistics()
 
       if ( choice == 0 and t.current >= 300 and period == 1):
         period += 1
-        setLambda( 4 )
+        setLambda( 2.5 )
         LAMBDA = getLambda()
         resetTransientStatistics()
 
       if ( choice == 0 and t.current >= 420 and period == 2):
         period += 1
-        setLambda( 2 )
+        setLambda( 1 )
         LAMBDA = getLambda()
         resetTransientStatistics()
 
       if ( choice == 0 and t.current >= 720 and period == 3):
         period += 1
-        setLambda( 5 )
+        setLambda( 3.5 )
         LAMBDA = getLambda()
         resetTransientStatistics()
 
@@ -561,7 +650,7 @@ for i in range( 0, replicas ):
 
     finiteHorizon(transientStatistics)
 
-    resetTransientStatistics()
+    resetTransientStatisticsdict()
   
   else:
 

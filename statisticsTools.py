@@ -46,6 +46,15 @@ transientTemplate = {
   "QUEUE3 AVG WAIT" : [],
   "QUEUE3 AVG DELAY" : [],
   "QUEUE3 AVG NUMBER" : [],
+  "QUEUE4 AVG WAIT" : [],
+  "QUEUE4 AVG DELAY" : [],
+  "QUEUE4 AVG NUMBER" : [],
+  "QUEUE5 AVG WAIT" : [],
+  "QUEUE5 AVG DELAY" : [],
+  "QUEUE5 AVG NUMBER" : [],
+  "QUEUE6 AVG WAIT" : [],
+  "QUEUE6 AVG DELAY" : [],
+  "QUEUE6 AVG NUMBER" : [],
   "UTILIZATION1" : [],
   "UTILIZATION2" : [],
   "UTILIZATION3" : [],
@@ -60,7 +69,7 @@ def initialize_transient_organizer(organizer, job_number, transientList):
 
     for t in organizer.keys():
         for i in range(0, job_number):
-            if t not in ['global', 'c1', 'c2', 'c3', 'q1', 'q2', 'q3', 'mean_conditional_slowdown']:
+            if t not in ['global', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'q1', 'q2', 'q3', 'mean_conditional_slowdown']:
                 organizer[t].append([])
             else:
                 for t2 in organizer[t].keys():
@@ -72,7 +81,7 @@ def initialize_transient_organizer(organizer, job_number, transientList):
                      'batch_size', 'servers', 'acquisition_time', 'index']:
                 continue
 
-            if t not in ['global', 'c1', 'c2', 'c3', 'q1', 'q2', 'q3', 'mean_conditional_slowdown']:
+            if t not in ['global', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'q1', 'q2', 'q3', 'mean_conditional_slowdown']:
                 for i in range(0, len(transientStats[t])):
                     try:
                         organizer[t][i].append(transientStats[t][i])
@@ -385,29 +394,48 @@ def transientPlotter(path, model, transientList):
         center_name_1 = "c1"
         center_name_2 = "c2"
         center_name_3 = "c3"
+        center_name_4 = "c4"
+        center_name_5 = "c5"
+        center_name_6 = "c6"
+        organizer = {
+          "avg_utilization1": [],
+          "avg_utilization2": [],
+          "avg_utilization3": [],
+          "avg_utilization4": [],
+          "avg_utilization5": [],
+          "avg_utilization6": [],
+          "global": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+          center_name_1: {"avg_wait": [], "avg_delay": [], "avg_number": []},
+          center_name_2: {"avg_wait": [], "avg_delay": [], "avg_number": []},
+          center_name_3: {"avg_wait": [], "avg_delay": [], "avg_number": []},
+          center_name_4: {"avg_wait": [], "avg_delay": [], "avg_number": []},
+          center_name_5: {"avg_wait": [], "avg_delay": [], "avg_number": []},
+          center_name_6: {"avg_wait": [], "avg_delay": [], "avg_number": []},
+          "mean_conditional_slowdown": {"(1.24)": [], "(2.65)": [], "(4.42)": [], "(8.26)": []}
+      }
+
     else:
         center_name_1 = "q1"
         center_name_2 = "q2"
         center_name_3 = "q3"
+        organizer = {
+          "avg_utilization1": [],
+          "avg_utilization2": [],
+          "avg_utilization3": [],
+          "avg_utilization4": [],
+          "avg_utilization5": [],
+          "avg_utilization6": [],
+          "global": {"avg_wait": [], "avg_delay": [], "avg_number": []},
+          center_name_1: {"avg_wait": [], "avg_delay": [], "avg_number": []},
+          center_name_2: {"avg_wait": [], "avg_delay": [], "avg_number": []},
+          center_name_3: {"avg_wait": [], "avg_delay": [], "avg_number": []},
+          "mean_conditional_slowdown": {"(1.24)": [], "(2.65)": [], "(4.42)": [], "(8.26)": []}
+      }
 
     #SE FISSATO
     delay, wait, utilization = analyticalResults(interarrivals)
 
     directories = os.listdir(path)
-
-    organizer = {
-        "avg_utilization1": [],
-        "avg_utilization2": [],
-        "avg_utilization3": [],
-        "avg_utilization4": [],
-        "avg_utilization5": [],
-        "avg_utilization6": [],
-        "global": {"avg_wait": [], "avg_delay": [], "avg_number": []},
-        center_name_1: {"avg_wait": [], "avg_delay": [], "avg_number": []},
-        center_name_2: {"avg_wait": [], "avg_delay": [], "avg_number": []},
-        center_name_3: {"avg_wait": [], "avg_delay": [], "avg_number": []},
-        "mean_conditional_slowdown": {"(1.24)": [], "(2.65)": [], "(4.42)": [], "(8.26)": []}
-    }
 
     jobs_acquisition = transientList[0]['index']
     job_number = len(transientList[0]['index'])
@@ -443,25 +471,48 @@ def transientPlotter(path, model, transientList):
             avg_utilizations[j-1].append(organizer["avg_utilization" + str(j)][i])
 
     for i in range(0, len(organizer[center_name_1]["avg_wait"])):
-        avg_wait_queues[0].append(organizer[center_name_1]["avg_wait"][i])
+        if SERVERS >= 1:avg_wait_queues[0].append(organizer[center_name_1]["avg_wait"][i])
     for i in range(0, len(organizer[center_name_2]["avg_wait"])):
-        avg_wait_queues[1].append(organizer[center_name_2]["avg_wait"][i])
+        if SERVERS >= 2:avg_wait_queues[1].append(organizer[center_name_2]["avg_wait"][i])
     for i in range(0, len(organizer[center_name_3]["avg_wait"])):
-        avg_wait_queues[2].append(organizer[center_name_3]["avg_wait"][i])
+        if SERVERS >= 3:avg_wait_queues[2].append(organizer[center_name_3]["avg_wait"][i])
 
     for i in range(0, len(organizer[center_name_1]["avg_delay"])):
-        avg_delay_queues[0].append(organizer[center_name_1]["avg_delay"][i])
+        if SERVERS >= 1: avg_delay_queues[0].append(organizer[center_name_1]["avg_delay"][i])
     for i in range(0, len(organizer[center_name_2]["avg_delay"])):
-        avg_delay_queues[1].append(organizer[center_name_2]["avg_delay"][i])
+        if SERVERS >= 2:avg_delay_queues[1].append(organizer[center_name_2]["avg_delay"][i])
     for i in range(0, len(organizer[center_name_3]["avg_delay"])):
-        avg_delay_queues[2].append(organizer[center_name_3]["avg_delay"][i])
+        if SERVERS >= 3:avg_delay_queues[2].append(organizer[center_name_3]["avg_delay"][i])
 
     for i in range(0, len(organizer[center_name_1]["avg_number"])):
-        avg_number_queues[0].append(organizer[center_name_1]["avg_number"][i])
+        if SERVERS >= 1:avg_number_queues[0].append(organizer[center_name_1]["avg_number"][i])
     for i in range(0, len(organizer[center_name_2]["avg_number"])):
-        avg_number_queues[1].append(organizer[center_name_2]["avg_number"][i])
+        if SERVERS >= 2:avg_number_queues[1].append(organizer[center_name_2]["avg_number"][i])
     for i in range(0, len(organizer[center_name_3]["avg_number"])):
-        avg_number_queues[2].append(organizer[center_name_3]["avg_number"][i])
+        if SERVERS >= 3:avg_number_queues[2].append(organizer[center_name_3]["avg_number"][i])
+    
+    if model == 1 and SERVERS >= 4:
+      for i in range(0, len(organizer[center_name_4]["avg_wait"])):
+          avg_wait_queues[3].append(organizer[center_name_1]["avg_wait"][i])
+      for i in range(0, len(organizer[center_name_5]["avg_wait"])):
+          if SERVERS >= 5: avg_wait_queues[4].append(organizer[center_name_2]["avg_wait"][i])
+      for i in range(0, len(organizer[center_name_6]["avg_wait"])):
+          if SERVERS >= 6: avg_wait_queues[5].append(organizer[center_name_3]["avg_wait"][i])
+
+      for i in range(0, len(organizer[center_name_4]["avg_delay"])):
+          avg_delay_queues[3].append(organizer[center_name_1]["avg_delay"][i])
+      for i in range(0, len(organizer[center_name_5]["avg_delay"])):
+          if SERVERS >= 5: avg_delay_queues[4].append(organizer[center_name_2]["avg_delay"][i])
+      for i in range(0, len(organizer[center_name_6]["avg_delay"])):
+          if SERVERS >= 6: avg_delay_queues[5].append(organizer[center_name_3]["avg_delay"][i])
+
+      for i in range(0, len(organizer[center_name_4]["avg_number"])):
+          avg_number_queues[3].append(organizer[center_name_1]["avg_number"][i])
+      for i in range(0, len(organizer[center_name_5]["avg_number"])):
+          if SERVERS >= 5: avg_number_queues[4].append(organizer[center_name_2]["avg_number"][i])
+      for i in range(0, len(organizer[center_name_6]["avg_number"])):
+          if SERVERS >= 6: avg_number_queues[5].append(organizer[center_name_3]["avg_number"][i])
+
 
     res = transientTemplate
 
@@ -472,11 +523,19 @@ def transientPlotter(path, model, transientList):
         res["GLOBAL AVG WAIT"].append({"mean": 0.0, "half_confidence_interval": 0.0, "stdev": 0.0, "confidence": 95})
         res["GLOBAL AVG DELAY"].append({"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95})
 
-    for j in range(1, 4):
-        for k in range(0, len(avg_number_global)):
-            res["QUEUE" + str(j) + " AVG NUMBER"].append({"mean": 0.0, "half_confidence_interval": 0.0, "stdev": 0.0, "confidence": 95})
-            res["QUEUE" + str(j) + " AVG WAIT"].append({"mean": 0.0, "half_confidence_interval": 0.0, "stdev": 0.0, "confidence": 95})
-            res["QUEUE" + str(j) + " AVG DELAY"].append({"mean": 0.0, "half_confidence_interval": 0.0, "stdev": 0.0, "confidence": 95})
+    if model == 0:
+      for j in range(1, 4):
+          for k in range(0, len(avg_number_global)):
+              res["QUEUE" + str(j) + " AVG NUMBER"].append({"mean": 0.0, "half_confidence_interval": 0.0, "stdev": 0.0, "confidence": 95})
+              res["QUEUE" + str(j) + " AVG WAIT"].append({"mean": 0.0, "half_confidence_interval": 0.0, "stdev": 0.0, "confidence": 95})
+              res["QUEUE" + str(j) + " AVG DELAY"].append({"mean": 0.0, "half_confidence_interval": 0.0, "stdev": 0.0, "confidence": 95})
+    else:
+      for j in range(1, SERVERS + 1):
+          for k in range(0, len(avg_number_global)):
+              res["QUEUE" + str(j) + " AVG NUMBER"].append({"mean": 0.0, "half_confidence_interval": 0.0, "stdev": 0.0, "confidence": 95})
+              res["QUEUE" + str(j) + " AVG WAIT"].append({"mean": 0.0, "half_confidence_interval": 0.0, "stdev": 0.0, "confidence": 95})
+              res["QUEUE" + str(j) + " AVG DELAY"].append({"mean": 0.0, "half_confidence_interval": 0.0, "stdev": 0.0, "confidence": 95})
+
 
     for j in range(1, SERVERS + 1):
         for k in range(0, len(avg_number_global)):
@@ -503,8 +562,32 @@ def transientPlotter(path, model, transientList):
             res["GLOBAL AVG DELAY"][j]["stdev"] = stdev
             res["GLOBAL AVG DELAY"][j]["half_confidence_interval"] = half_interval
 
-    for j in range(1, 4):
+    if model == 0:
+      for j in range(1, 4):
+          for k in range(0, len(avg_wait_queues[j-1])):
+              if len(avg_wait_queues[j-1]) >= 4:
+                  mean, stdev, half_interval = estimate(avg_wait_queues[j-1][k])
+                  res["QUEUE" + str(j) + " AVG WAIT"][k]["mean"] = mean
+                  res["QUEUE" + str(j) + " AVG WAIT"][k]["stdev"] = stdev
+                  res["QUEUE" + str(j) + " AVG WAIT"][k]["half_confidence_interval"] = half_interval
+
+          for k in range(0, len(avg_delay_queues[j-1])):
+              if len(avg_delay_queues[j-1]) >= 4:
+                  mean, stdev, half_interval = estimate(avg_delay_queues[j-1][k])
+                  res["QUEUE" + str(j) + " AVG DELAY"][k]["mean"] = mean
+                  res["QUEUE" + str(j) + " AVG DELAY"][k]["stdev"] = stdev
+                  res["QUEUE" + str(j) + " AVG DELAY"][k]["half_confidence_interval"] = half_interval
+
+          for k in range(0, len(avg_number_queues[j-1])):
+              if len(avg_number_queues[j-1]) >= 4:
+                  mean, stdev, half_interval = estimate(avg_number_queues[j-1][k])
+                  res["QUEUE" + str(j) + " AVG NUMBER"][k]["mean"] = mean
+                  res["QUEUE" + str(j) + " AVG NUMBER"][k]["stdev"] = stdev
+                  res["QUEUE" + str(j) + " AVG NUMBER"][k]["half_confidence_interval"] = half_interval
+    else:
+      for j in range(1, SERVERS + 1 ):
         for k in range(0, len(avg_wait_queues[j-1])):
+            #print(k)  
             if len(avg_wait_queues[j-1]) >= 4:
                 mean, stdev, half_interval = estimate(avg_wait_queues[j-1][k])
                 res["QUEUE" + str(j) + " AVG WAIT"][k]["mean"] = mean
@@ -558,9 +641,10 @@ def transientPlotter(path, model, transientList):
         title += "\n" + str(SERVERS) + " Servers -  Avg Interarrival time: " + str(interarrivals) + "min"
         title += "\n Finite Horizon Statistics"
 
-        plt.errorbar(x, values, errors, fmt='.')
-        plt.title( title, fontsize = 10 )
-        plt.xlabel("jobs")
-        plt.savefig(path + "/" + t + ".png")
-        plt.legend(seeds)
-        plt.close()
+        if len(x) == len(values) and len(x) == len(errors):
+          plt.errorbar(x, values, errors, fmt='.')
+          plt.title( title, fontsize = 10 )
+          plt.xlabel("jobs")
+          plt.savefig(path + "/" + t + ".png")
+          plt.legend(seeds)
+          plt.close()
