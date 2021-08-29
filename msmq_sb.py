@@ -24,7 +24,7 @@ STOP  =   840.0                                                       # terminal
 replicas = int(sys.argv[1])
 STEADYLAMBDA = 1
 QUEUES = 3                                                            # number of queues in the node
-SERVERS = 1                                                           # number of servers in the node
+SERVERS = 6                                                           # number of servers in the node
 multiqueue = None                                                     # multi queues size-based structure 
 X1 = 1.5                                                              # first size boundary                [ minutes ]
 X2 = 4.5                                                              # second size boundary               [ minutes ]
@@ -42,6 +42,9 @@ batchmean = {
   "avg_utilization1" : [],
   "avg_utilization2" : [],
   "avg_utilization3" : [],
+  "avg_utilization4" : [],
+  "avg_utilization5" : [],
+  "avg_utilization6" : [],
   "global" : { "avg_wait": [] , "avg_delay":[], "avg_number" : []  },
   "q1" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : [] },
   "q2" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : []  },
@@ -72,28 +75,26 @@ output_dictionary = {
 
 
 def resetTransientStatistics():
+  global START
+  global area, index, number, sum
+  global area_queues, index_queues, number_queues, tot_services_for_queue
   global transientStatistics
+  global simulationtype, transient_index
 
-  transientStatistics = {
-    "seed": 0,
-    "arrival_stream": 0,
-    "service_stream": 1,
-    "observation_period": 0,
-    "interarrivals": 0.0,
-    "batch_size": 0,
-    "k": 0,
-    "servers": 0,
-    "acquisition_time": [],
-    "avg_utilization1": [],
-    "avg_utilization2": [],
-    "avg_utilization3": [],
-    "global": {"avg_wait": [], "avg_delay": [], "avg_number": []},
-    "q1": {"avg_wait": [], "avg_delay": [], "avg_number": []},
-    "q2": {"avg_wait": [], "avg_delay": [], "avg_number": []},
-    "q3": {"avg_wait": [], "avg_delay": [], "avg_number": []},
-    "mean_conditional_slowdown": {"(1.24)": [], "(2.65)": [], "(4.42)": [], "(8.26)": []},
-    "index": []
-  }
+  area = 0                                                   
+  index_queues  = [ 0, 0, 0 ]                                           
+  area_queues   = [ 0.0, 0.0, 0.0 ]                                    
+  tot_services_for_queue = [ 0.0, 0.0, 0.0 ]
+  sum = [ accumSum() for i in range( 0, SERVERS + 1 ) ]
+
+  for s in range( 1, SERVERS + 1 ):  
+    sum[s].service = 0.0
+    sum[s].served  = 0
+
+  START = t.current
+
+  transient_index = index
+
   return True
 
 
@@ -151,9 +152,9 @@ def NextBatch():
 
   for j in range ( 0, QUEUES ):
 
-    wait[j] = area_queues[j] / index_queues[j] + tot_services_for_queue[j] / index_queues[j]
-    delay[j] = area_queues[j] / index_queues[j]
-    queue_population[j] = area_queues[j] / t.current
+    if index_queues[j] != 0: wait[j] = area_queues[j] / index_queues[j] + tot_services_for_queue[j] / index_queues[j]
+    if index_queues[j] != 0: delay[j] = area_queues[j] / index_queues[j]
+    queue_population[j] = area_queues[j] / (t.current-START)
 
   d = 0.0
 
@@ -164,7 +165,7 @@ def NextBatch():
   
   global_wait = area / b
   global_delay = d
-  global_number = area / t.current
+  global_number = area / (t.current-START)
 
   batchmean["global"]["avg_wait"].append(global_wait)
   batchmean["global"]["avg_delay"].append(global_delay)
@@ -182,10 +183,10 @@ def NextBatch():
   batchmean["q2"]["avg_number"].append(queue_population[1])
   batchmean["q3"]["avg_number"].append(queue_population[2])
 
-  batchmean["mean_conditional_slowdown"]["(1.24)"].append( 1 + (area_queues[0] / index_queues[0]) / 1.24 )
-  batchmean["mean_conditional_slowdown"]["(2.65)"].append( 1 + (area_queues[1] / index_queues[1]) / 2.65 )
-  batchmean["mean_conditional_slowdown"]["(4.42)"].append( 1 + (area_queues[1] / index_queues[1]) / 4.42 )
-  batchmean["mean_conditional_slowdown"]["(8.26)"].append( 1 + (area_queues[2] / index_queues[2]) / 8.26 )
+  if index_queues[0] != 0: batchmean["mean_conditional_slowdown"]["(1.24)"].append( 1 + (area_queues[0] / index_queues[0]) / 1.24 )
+  if index_queues[1] != 0: batchmean["mean_conditional_slowdown"]["(2.65)"].append( 1 + (area_queues[1] / index_queues[1]) / 2.65 )
+  if index_queues[1] != 0: batchmean["mean_conditional_slowdown"]["(4.42)"].append( 1 + (area_queues[1] / index_queues[1]) / 4.42 )
+  if index_queues[2] != 0: batchmean["mean_conditional_slowdown"]["(8.26)"].append( 1 + (area_queues[2] / index_queues[2]) / 8.26 )
 
   for s in range( 1,  SERVERS + 1 ):
     batchmean["avg_utilization" + str(s)].append( sum[s].service / (t.current-START) )
@@ -212,71 +213,128 @@ def transientStats():
   global area, index, number, sum
   global area_queues, index_queues, number_queues, tot_services_for_queue
   global transientStatistics
+  global simulationtype, transient_index
 
   wait = [0.0, 0.0, 0.0]
   delay = [0.0, 0.0, 0.0]
   queue_population = [0.0, 0.0, 0.0]
 
-  for j in range ( 0, QUEUES ):
+  if simulationtype == 0:
 
-    try:
-      wait[j] = area_queues[j] / index_queues[j] + tot_services_for_queue[j] / index_queues[j]
-      delay[j] = area_queues[j] / index_queues[j]
+    for j in range ( 0, QUEUES ):
+      if index_queues[j] != 0: wait[j] = area_queues[j] / index_queues[j] + tot_services_for_queue[j] / index_queues[j]
+      else: wait[j] = 0
+      if index_queues[j] != 0: delay[j] = area_queues[j] / index_queues[j] 
+      else:  delay[j] = 0
       queue_population[j] = area_queues[j] / t.current
-    except:
-      wait[j] = 0.0
-      delay[j] = 0.0
-      queue_population[j] = 0.0
-  
-  d = 0.0
+    
+    d = 0.0
+    for j in range(0, QUEUES):
+      percentage = index_queues[j] / index
+      if index_queues[j] != 0:
+        d += (area_queues[j] / index_queues[j]) * percentage
 
-  for j in range(0, QUEUES):
-    percentage = index_queues[j] / index
-    if index_queues[j] != 0:
-      d += (area_queues[j] / index_queues[j]) * percentage
-
-  try:
-    global_wait = area / index
+    if index != 0: global_wait = area / index
     global_delay = d
     global_number = area / t.current
-  except:
+
     global_wait = 0.0
     global_number = 0.0
 
-  transientStatistics["global"]["avg_wait"].append(global_wait)
-  transientStatistics["global"]["avg_delay"].append(global_delay)
-  transientStatistics["global"]["avg_number"].append(global_number)
+    transientStatistics["global"]["avg_wait"].append(global_wait)
+    transientStatistics["global"]["avg_delay"].append(global_delay)
+    transientStatistics["global"]["avg_number"].append(global_number)
 
-  transientStatistics["q1"]["avg_wait"].append(wait[0])
-  transientStatistics["q2"]["avg_wait"].append(wait[1])
-  transientStatistics["q3"]["avg_wait"].append(wait[2])
+    transientStatistics["q1"]["avg_wait"].append(wait[0])
+    transientStatistics["q2"]["avg_wait"].append(wait[1])
+    transientStatistics["q3"]["avg_wait"].append(wait[2])
 
-  transientStatistics["q1"]["avg_delay"].append(delay[0])
-  transientStatistics["q2"]["avg_delay"].append(delay[1])
-  transientStatistics["q3"]["avg_delay"].append(delay[2])
+    transientStatistics["q1"]["avg_delay"].append(delay[0])
+    transientStatistics["q2"]["avg_delay"].append(delay[1])
+    transientStatistics["q3"]["avg_delay"].append(delay[2])
 
-  transientStatistics["q1"]["avg_number"].append(queue_population[0])
-  transientStatistics["q2"]["avg_number"].append(queue_population[1])
-  transientStatistics["q3"]["avg_number"].append(queue_population[2])
+    transientStatistics["q1"]["avg_number"].append(queue_population[0])
+    transientStatistics["q2"]["avg_number"].append(queue_population[1])
+    transientStatistics["q3"]["avg_number"].append(queue_population[2])
 
-  transientStatistics["acquisition_time"].append(t.current)
-  transientStatistics["index"].append(index)
+    transientStatistics["acquisition_time"].append(t.current)
+    transientStatistics["index"].append(index)
 
-  try:
-    transientStatistics["mean_conditional_slowdown"]["(1.24)"].append( 1 + (area_queues[0] / index_queues[0]) / 1.24 )
-    transientStatistics["mean_conditional_slowdown"]["(2.65)"].append( 1 + (area_queues[1] / index_queues[1]) / 2.65 )
-    transientStatistics["mean_conditional_slowdown"]["(4.42)"].append( 1 + (area_queues[1] / index_queues[1]) / 4.42 )
-    transientStatistics["mean_conditional_slowdown"]["(8.26)"].append( 1 + (area_queues[2] / index_queues[2]) / 8.26 )
-  except :
-    transientStatistics["mean_conditional_slowdown"]["(1.24)"].append( 0.0 )
-    transientStatistics["mean_conditional_slowdown"]["(2.65)"].append( 0.0 )
-    transientStatistics["mean_conditional_slowdown"]["(4.42)"].append( 0.0 )
-    transientStatistics["mean_conditional_slowdown"]["(8.26)"].append( 0.0 )
+    
+    if index_queues[0] != 0: transientStatistics["mean_conditional_slowdown"]["(1.24)"].append( 1 + (area_queues[0] / index_queues[0]) / 1.24 )
+    if index_queues[1] != 0: transientStatistics["mean_conditional_slowdown"]["(2.65)"].append( 1 + (area_queues[1] / index_queues[1]) / 2.65 )
+    if index_queues[1] != 0: transientStatistics["mean_conditional_slowdown"]["(4.42)"].append( 1 + (area_queues[1] / index_queues[1]) / 4.42 )
+    if index_queues[2] != 0: transientStatistics["mean_conditional_slowdown"]["(8.26)"].append( 1 + (area_queues[2] / index_queues[2]) / 8.26 )
 
-  for s in range( 1,  SERVERS + 1 ):
-    transientStatistics["avg_utilization" + str(s)].append( sum[s].service / t.current )
+
+    for s in range( 1,  SERVERS + 1 ):
+      transientStatistics["avg_utilization" + str(s)].append( sum[s].service / t.current )
   
- 
+  else:
+
+    for j in range ( 0, QUEUES ):
+      if index_queues[j] != 0: wait[j] = area_queues[j] / index_queues[j] + tot_services_for_queue[j] / index_queues[j]
+      else: wait[j] = 0
+      if index_queues[j] != 0: delay[j] = area_queues[j] / index_queues[j] 
+      else:  delay[j] = 0
+      if t.current != START: queue_population[j] = area_queues[j] / (t.current-START)
+      else: queue_population[j] = 0
+
+    d = 0.0
+
+    for j in range( 0, QUEUES ):
+      if index == transient_index: break
+      percentage = index_queues[j] / (index-transient_index)
+      if index_queues[j] != 0:
+        d += ( area_queues[j] / index_queues[j] ) * percentage
+    
+    if index != transient_index : global_wait = area / (index-transient_index)
+    else: global_wait = 0
+    global_delay = d
+    if t.current != START: global_number = area / (t.current-START)
+    else: global_number = 0
+
+    transientStatistics["global"]["avg_wait"].append(global_wait)
+    transientStatistics["global"]["avg_delay"].append(global_delay)
+    transientStatistics["global"]["avg_number"].append(global_number)
+
+    transientStatistics["q1"]["avg_wait"].append(wait[0])
+    transientStatistics["q2"]["avg_wait"].append(wait[1])
+    transientStatistics["q3"]["avg_wait"].append(wait[2])
+
+    transientStatistics["q1"]["avg_delay"].append(delay[0])
+    transientStatistics["q2"]["avg_delay"].append(delay[1])
+    transientStatistics["q3"]["avg_delay"].append(delay[2])
+
+    transientStatistics["q1"]["avg_number"].append(queue_population[0])
+    transientStatistics["q2"]["avg_number"].append(queue_population[1])
+    transientStatistics["q3"]["avg_number"].append(queue_population[2])
+
+    transientStatistics["acquisition_time"].append(t.current)
+    transientStatistics["index"].append(index)
+
+    
+    if index_queues[0] != 0: transientStatistics["mean_conditional_slowdown"]["(1.24)"].append( 1 + (area_queues[0] / index_queues[0]) / 1.24 )
+    if index_queues[1] != 0: transientStatistics["mean_conditional_slowdown"]["(2.65)"].append( 1 + (area_queues[1] / index_queues[1]) / 2.65 )
+    if index_queues[1] != 0: transientStatistics["mean_conditional_slowdown"]["(4.42)"].append( 1 + (area_queues[1] / index_queues[1]) / 4.42 )
+    if index_queues[2] != 0: transientStatistics["mean_conditional_slowdown"]["(8.26)"].append( 1 + (area_queues[2] / index_queues[2]) / 8.26 )
+
+    for s in range( 1,  SERVERS + 1 ):
+      if t.current != START: transientStatistics["avg_utilization" + str(s)].append( sum[s].service / (t.current-START) )
+      else: transientStatistics["avg_utilization" + str(s)].append( transientStatistics["avg_utilization" + str(s)][len(transientStatistics["avg_utilization" + str(s)])-1] )
+
+    area = 0                                                   
+    index_queues  = [ 0, 0, 0 ]                                           
+    area_queues   = [ 0.0, 0.0, 0.0 ]                                    
+    tot_services_for_queue = [ 0.0, 0.0, 0.0 ]
+    sum = [ accumSum() for i in range( 0, SERVERS + 1 ) ]
+
+    for s in range( 1, SERVERS + 1 ):  
+      sum[s].service = 0.0
+      sum[s].served  = 0
+
+    START = t.current
+
 
 
 class event:
@@ -358,7 +416,7 @@ def serve():
 
 
 ''' ---------------------------------------------- Simulation settings ---------------------------------------------------------------------- '''
-
+simulationtype = 0
 choice = 0
 type = 0
 print(" Do you want to record a track of an output statistics?\n")
@@ -376,7 +434,7 @@ else:
   print(" Which type of Transient Simulation?\n")
   print(" Fixed Interarrival rate ............................. 0")
   print(" Variable ............................................ 1")
-  type = int(input("\n Please, type your choice here: "))
+  simulationtype = int(input("\n Please, type your choice here: "))
 
 f = open("MSMQ_sb/id.txt", "r")
 old_id = f.readline()
@@ -443,7 +501,7 @@ for i in range( 0, replicas ):
   SIMULATION_SEED = getSeed()
 
   if choice == 0:
-    LAMBDA = 6
+    LAMBDA = 1
     setLambda( LAMBDA )
   else:
     LAMBDA = STEADYLAMBDA
@@ -469,6 +527,7 @@ for i in range( 0, replicas ):
   mod = 30
   old_index = 0
   batch_index = 0
+  transient_index = 0
 
   while ( ( events[0].x != 0 ) or ( number != 0 ) ):
     
@@ -479,7 +538,8 @@ for i in range( 0, replicas ):
         batch_index += 1
         old_index = index
 
-    if (type == 1):
+    if ( simulationtype == 1 ):
+
       if (choice == 0 and t.current >= 120 and period == 0):
         period += 1
         setLambda(3)
@@ -627,6 +687,9 @@ for i in range( 0, replicas ):
       "avg_utilization1" : [],
       "avg_utilization2" : [],
       "avg_utilization3" : [],
+      "avg_utilization4" : [],
+      "avg_utilization5" : [],
+      "avg_utilization6" : [],
       "global" : { "avg_wait": [] , "avg_delay" : [], "avg_number" : []  },
       "q1" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : [] },
       "q2" : { "avg_wait": [] , "avg_delay": [] , "avg_number" : []  },

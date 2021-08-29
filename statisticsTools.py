@@ -49,11 +49,15 @@ transientTemplate = {
   "UTILIZATION1" : [],
   "UTILIZATION2" : [],
   "UTILIZATION3" : [],
+  "UTILIZATION4" : [],
+  "UTILIZATION5" : [],
+  "UTILIZATION6" : [],
   "JOBS": [],
 }
 
 
 def initialize_transient_organizer(organizer, job_number, transientList):
+
     for t in organizer.keys():
         for i in range(0, job_number):
             if t not in ['global', 'c1', 'c2', 'c3', 'q1', 'q2', 'q3', 'mean_conditional_slowdown']:
@@ -370,6 +374,7 @@ def steadyStatePlotter( path, model ):
 
 
 def transientPlotter(path, model, transientList):
+  
     global transientTemplate
 
     interarrivals = transientTemplate["interarrival"]
@@ -419,11 +424,19 @@ def transientPlotter(path, model, transientList):
     for i in range(0, len(organizer["global"]["avg_number"])):
         avg_number_global.append(organizer["global"]["avg_number"][i])
 
-    for j in range(SERVERS):
-        avg_utilizations.append([])
-        avg_wait_queues.append([])
-        avg_delay_queues.append([])
-        avg_number_queues.append([])
+    if model == 1:
+      for j in range(SERVERS):
+          avg_utilizations.append([])
+          avg_wait_queues.append([])
+          avg_delay_queues.append([])
+          avg_number_queues.append([])
+    else:
+      for j in range(SERVERS):
+          avg_utilizations.append([])
+      for j in range(3):
+          avg_wait_queues.append([])
+          avg_delay_queues.append([])
+          avg_number_queues.append([])
 
     for j in range(1, SERVERS +1):
         for i in range(0, len(organizer["avg_utilization" + str(j)])):
@@ -465,7 +478,7 @@ def transientPlotter(path, model, transientList):
             res["QUEUE" + str(j) + " AVG WAIT"].append({"mean": 0.0, "half_confidence_interval": 0.0, "stdev": 0.0, "confidence": 95})
             res["QUEUE" + str(j) + " AVG DELAY"].append({"mean": 0.0, "half_confidence_interval": 0.0, "stdev": 0.0, "confidence": 95})
 
-    for j in range(1, 4):
+    for j in range(1, SERVERS + 1):
         for k in range(0, len(avg_number_global)):
             res["UTILIZATION" + str(j)].append({"mean": 0.0, "half_confidence_interval": 0.0, "stdev": 0.0, "confidence": 95})
 
@@ -546,8 +559,7 @@ def transientPlotter(path, model, transientList):
         title += "\n Finite Horizon Statistics"
 
         plt.errorbar(x, values, errors, fmt='.')
-
-        plt.title(title)
+        plt.title( title, fontsize = 10 )
         plt.xlabel("jobs")
         plt.savefig(path + "/" + t + ".png")
         plt.legend(seeds)
