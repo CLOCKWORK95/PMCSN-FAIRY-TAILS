@@ -233,14 +233,23 @@ def NextBatch():
   if NODES >= 1 : batchmean["c1"]["avg_wait"].append(wait[0])
   if NODES >= 2 : batchmean["c2"]["avg_wait"].append(wait[1])
   if NODES >= 3 : batchmean["c3"]["avg_wait"].append(wait[2])
+  if NODES >= 4 : batchmean["c4"]["avg_wait"].append(wait[3])
+  if NODES >= 5 : batchmean["c5"]["avg_wait"].append(wait[4])
+  if NODES >= 6 : batchmean["c6"]["avg_wait"].append(wait[5])
 
   if NODES >= 1 : batchmean["c1"]["avg_delay"].append(delay[0])
   if NODES >= 2 : batchmean["c2"]["avg_delay"].append(delay[1])
   if NODES >= 3 : batchmean["c3"]["avg_delay"].append(delay[2])
+  if NODES >= 4 : batchmean["c4"]["avg_delay"].append(delay[3])
+  if NODES >= 5 : batchmean["c5"]["avg_delay"].append(delay[4])
+  if NODES >= 6 : batchmean["c6"]["avg_delay"].append(delay[5])
 
   if NODES >= 1 : batchmean["c1"]["avg_number"].append(queue_population[0])
   if NODES >= 2 : batchmean["c2"]["avg_number"].append(queue_population[1])
   if NODES >= 3 : batchmean["c3"]["avg_number"].append(queue_population[2])
+  if NODES >= 4 : batchmean["c4"]["avg_number"].append(queue_population[3])
+  if NODES >= 5 : batchmean["c5"]["avg_number"].append(queue_population[4])
+  if NODES >= 6 : batchmean["c6"]["avg_number"].append(queue_population[5])
 
   batchmean["mean_conditional_slowdown"]["(1.24)"].append( 1 + (area/b)  / 1.24 )
   batchmean["mean_conditional_slowdown"]["(2.65)"].append( 1 + (area/b) / 2.65 )

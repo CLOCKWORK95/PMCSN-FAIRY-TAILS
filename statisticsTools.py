@@ -22,6 +22,15 @@ batchMeanTemplate = {
   "QUEUE3 AVG WAIT" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
   "QUEUE3 AVG DELAY" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
   "QUEUE3 AVG NUMBER" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
+  "QUEUE4 AVG WAIT" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
+  "QUEUE4 AVG DELAY" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
+  "QUEUE4 AVG NUMBER" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
+  "QUEUE5 AVG WAIT" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
+  "QUEUE5 AVG DELAY" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
+  "QUEUE5 AVG NUMBER" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
+  "QUEUE6 AVG WAIT" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
+  "QUEUE6 AVG DELAY" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
+  "QUEUE6 AVG NUMBER" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
   "UTILIZATION1" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
   "UTILIZATION2" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
   "UTILIZATION3" : {"mean":0.0,"half_confidence_interval":0.0,"stdev":0.0,"confidence":95},
@@ -195,6 +204,21 @@ def batchMeans( path, batchDictionary, model ):
         avg_delay_queues.append( batchDictionary["c3"]["avg_delay"][1:] )
         avg_number_queues.append( batchDictionary["c3"]["avg_number"][1:] )
 
+      if SERVERS >= 4 :
+        avg_wait_queues.append( batchDictionary["c4"]["avg_wait"][1:] )
+        avg_delay_queues.append( batchDictionary["c4"]["avg_delay"][1:] )
+        avg_number_queues.append( batchDictionary["c4"]["avg_number"][1:] )
+
+      if SERVERS >= 5 :
+        avg_wait_queues.append( batchDictionary["c5"]["avg_wait"][1:] )
+        avg_delay_queues.append( batchDictionary["c5"]["avg_delay"][1:] )
+        avg_number_queues.append( batchDictionary["c5"]["avg_number"][1:] )
+
+      if SERVERS >= 6 :
+        avg_wait_queues.append( batchDictionary["c6"]["avg_wait"][1:] )
+        avg_delay_queues.append( batchDictionary["c6"]["avg_delay"][1:] )
+        avg_number_queues.append( batchDictionary["c6"]["avg_number"][1:] )
+
 
 
     with open( path + "/steadystate.json" , "a") as results:
@@ -220,21 +244,39 @@ def batchMeans( path, batchDictionary, model ):
         res["GLOBAL AVG NUMBER"]["stdev"] = stdev
         res["GLOBAL AVG NUMBER"]["half_confidence_interval"] = half_interval
 
-        for j in range( 1, 4 ):
-          mean, stdev, half_interval = estimate( avg_wait_queues[j-1] )
-          res["QUEUE" + str(j) + " AVG WAIT"]["mean"] = mean
-          res["QUEUE" + str(j) + " AVG WAIT"]["stdev"] = stdev
-          res["QUEUE" + str(j) + " AVG WAIT"]["half_confidence_interval"] = half_interval
+        if model == 0:
+          for j in range( 1, 4 ):
+            mean, stdev, half_interval = estimate( avg_wait_queues[j-1] )
+            res["QUEUE" + str(j) + " AVG WAIT"]["mean"] = mean
+            res["QUEUE" + str(j) + " AVG WAIT"]["stdev"] = stdev
+            res["QUEUE" + str(j) + " AVG WAIT"]["half_confidence_interval"] = half_interval
 
-          mean, stdev, half_interval = estimate( avg_delay_queues[j-1] )
-          res["QUEUE" + str(j) + " AVG DELAY"]["mean"] = mean
-          res["QUEUE" + str(j) + " AVG DELAY"]["stdev"] = stdev
-          res["QUEUE" + str(j) + " AVG DELAY"]["half_confidence_interval"] = half_interval
+            mean, stdev, half_interval = estimate( avg_delay_queues[j-1] )
+            res["QUEUE" + str(j) + " AVG DELAY"]["mean"] = mean
+            res["QUEUE" + str(j) + " AVG DELAY"]["stdev"] = stdev
+            res["QUEUE" + str(j) + " AVG DELAY"]["half_confidence_interval"] = half_interval
 
-          mean, stdev, half_interval = estimate( avg_number_queues[j-1] )
-          res["QUEUE" + str(j) + " AVG NUMBER"]["mean"] = mean
-          res["QUEUE" + str(j) + " AVG NUMBER"]["stdev"] = stdev
-          res["QUEUE" + str(j) + " AVG NUMBER"]["half_confidence_interval"] = half_interval
+            mean, stdev, half_interval = estimate( avg_number_queues[j-1] )
+            res["QUEUE" + str(j) + " AVG NUMBER"]["mean"] = mean
+            res["QUEUE" + str(j) + " AVG NUMBER"]["stdev"] = stdev
+            res["QUEUE" + str(j) + " AVG NUMBER"]["half_confidence_interval"] = half_interval
+
+        if model == 1:
+          for j in range( 1, SERVERS + 1 ):
+            mean, stdev, half_interval = estimate( avg_wait_queues[j-1] )
+            res["QUEUE" + str(j) + " AVG WAIT"]["mean"] = mean
+            res["QUEUE" + str(j) + " AVG WAIT"]["stdev"] = stdev
+            res["QUEUE" + str(j) + " AVG WAIT"]["half_confidence_interval"] = half_interval
+
+            mean, stdev, half_interval = estimate( avg_delay_queues[j-1] )
+            res["QUEUE" + str(j) + " AVG DELAY"]["mean"] = mean
+            res["QUEUE" + str(j) + " AVG DELAY"]["stdev"] = stdev
+            res["QUEUE" + str(j) + " AVG DELAY"]["half_confidence_interval"] = half_interval
+
+            mean, stdev, half_interval = estimate( avg_number_queues[j-1] )
+            res["QUEUE" + str(j) + " AVG NUMBER"]["mean"] = mean
+            res["QUEUE" + str(j) + " AVG NUMBER"]["stdev"] = stdev
+            res["QUEUE" + str(j) + " AVG NUMBER"]["half_confidence_interval"] = half_interval
 
 
         for j in range( 1, SERVERS + 1 ):
