@@ -22,8 +22,8 @@ from rngs import random
 START =      0.0                                                      # initial time of the observation period      [minutes]
 STOP  =    840.0                                                      # terminal (close the door) time              [minutes]
 replicas = int(sys.argv[1])
-STEADYLAMBDA = 1
-NODES = 3                                                             # number of nodes (subsystems) in the network
+STEADYLAMBDA = 2
+NODES = 6                                                             # number of nodes (subsystems) in the network
 turn = 0
 
 LAMBDA = 0.0
