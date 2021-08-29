@@ -11,7 +11,6 @@
 # * ---------------------------------------------------------------------------------------------------------------------- 
 # */
 
-from ssq_abs_network import STEADYLAMBDA
 from statisticsTools import batchMeans, steadyStatePlotter
 from probabilityDistributions import getLambda, setLambda
 from rngs import getSeed, plantSeeds
@@ -23,9 +22,9 @@ import sys, json, os
 START =   0.0                                                         # initial (open the door) time       [ minutes ] 
 STOP  =   840.0                                                       # terminal (close the door) time     [ minutes ]
 replicas = int(sys.argv[1])
-STEADYLAMBDA = 1
+STEADYLAMBDA = 6
 QUEUES = 3                                                            # number of queues in the node
-SERVERS = 6                                                           # number of servers in the node      
+SERVERS = 1                                                           # number of servers in the node      
 multiqueue = None                                                     # multi queues size-based structure 
 X1 = 1.5                                                              # first size boundary                [ minutes ]
 X2 = 4.5                                                              # second size boundary               [ minutes ]
@@ -129,8 +128,8 @@ def NextBatch():
 
   for j in range ( 0, QUEUES ):
 
-    wait[j] = area_queues[j] / index_queues[j] + tot_services_for_queue[j] / index_queues[j]
-    delay[j] = area_queues[j] / index_queues[j]
+    if index_queues[j] != 0: wait[j] = area_queues[j] / index_queues[j] + tot_services_for_queue[j] / index_queues[j]
+    if index_queues[j] != 0: delay[j] = area_queues[j] / index_queues[j]
     queue_population[j] = area_queues[j] / t.current
 
   d = 0.0 
@@ -160,10 +159,10 @@ def NextBatch():
   batchmean["q2"]["avg_number"].append(queue_population[1])
   batchmean["q3"]["avg_number"].append(queue_population[2])
 
-  batchmean["mean_conditional_slowdown"]["(1.24)"].append( 1 + (area_queues[0] / index_queues[0]) / 1.24 )
-  batchmean["mean_conditional_slowdown"]["(2.65)"].append( 1 + (area_queues[1] / index_queues[1]) / 2.65 )
-  batchmean["mean_conditional_slowdown"]["(4.42)"].append( 1 + (area_queues[1] / index_queues[1]) / 4.42 )
-  batchmean["mean_conditional_slowdown"]["(8.26)"].append( 1 + (area_queues[2] / index_queues[2]) / 8.26 )
+  if index_queues[0] != 0:batchmean["mean_conditional_slowdown"]["(1.24)"].append( 1 + (area_queues[0] / index_queues[0]) / 1.24 )
+  if index_queues[1] != 0:batchmean["mean_conditional_slowdown"]["(2.65)"].append( 1 + (area_queues[1] / index_queues[1]) / 2.65 )
+  if index_queues[1] != 0:batchmean["mean_conditional_slowdown"]["(4.42)"].append( 1 + (area_queues[1] / index_queues[1]) / 4.42 )
+  if index_queues[2] != 0:batchmean["mean_conditional_slowdown"]["(8.26)"].append( 1 + (area_queues[2] / index_queues[2]) / 8.26 )
 
   for s in range( 1,  SERVERS + 1 ):
     batchmean["avg_utilization" + str(s)].append( sum[s].service / (t.current-START) )
@@ -412,7 +411,7 @@ for i in range( 0, replicas ):
   SIMULATION_SEED = getSeed()
 
   if choice == 0:
-    LAMBDA = 4
+    LAMBDA = 5
     setLambda( LAMBDA )
   else:
     LAMBDA = STEADYLAMBDA
@@ -558,6 +557,7 @@ for i in range( 0, replicas ):
       print("\n  QUEUE N° : " + str(j+1) + "  [avg job size = {0:6.2f}".format(tot_services_for_queue[j]/index_queues[j]) + " minutes | served clients = {0:6.2f}".format(index_queues[j]/(index_queues[0]+index_queues[1]+index_queues[2])) + " %]")
       print("  avg wait ........... = {0:6.2f}".format(area_queues[j] / index_queues[j] + tot_services_for_queue[j] / index_queues[j]))
       print("  avg delay .......... = {0:6.2f}".format(area_queues[j] / index_queues[j]))
+      print("  avg service .......... = {0:6.2f}".format(area_queues[j] / index_queues[j] + tot_services_for_queue[j] / index_queues[j] - area_queues[j] / index_queues[j]))
       print("  avg # in queue ..... = {0:6.2f}".format(area_queues[j] / (t.current-START)))
 
     print("\n  MEAN CONDITIONAL SLOWDOWN " )
