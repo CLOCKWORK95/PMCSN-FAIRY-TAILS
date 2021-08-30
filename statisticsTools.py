@@ -107,6 +107,7 @@ def initialize_transient_organizer(organizer, job_number, transientList):
 
     return organizer
 
+
 def analyticalResults( interarrivals ):
 
   LAMBDA = 1/interarrivals
@@ -338,6 +339,8 @@ def steadyStatePlotter( path, model ):
 
     servers = 0
 
+    queues = 0
+
     for d in directories:
 
       files = os.listdir( path + "/" + d )
@@ -370,9 +373,9 @@ def steadyStatePlotter( path, model ):
             errors.append( data[t]["half_confidence_interval"] )
     
     
-
     x = [ i for i in range( len(values) ) ]
-    plt.errorbar( x, values, errors, fmt = '.' )
+
+    fig, axs = plt.subplots(2,1)
 
     realvalue = ""
 
@@ -398,11 +401,6 @@ def steadyStatePlotter( path, model ):
       truevalue = np.array( l )
       plt.plot( truevalue ) '''
 
-    plt.title( title, fontsize = 10 )
-    
-    #plt.legend( [ "Analytical Result: " + realvalue, "Initial Seed: "+ str(seeds[0])] )
-
-    
     if t.startswith("UTILIZATION"):
       maxvalue = np.max(values) + np.max(errors)
       minvalue = np.min(values) - np.max(errors)
@@ -416,16 +414,40 @@ def steadyStatePlotter( path, model ):
       minvalue = np.min(values) - np.max(errors)
       plt.ylim( minvalue - 0.1, maxvalue + 0.1 )
     
+    cellText = []
 
+    for j in range(len(values)):
+      row = []
+      row.append(str(seeds[j]))
+      row.append(str(values[j]))
+      row.append("±"+str(errors[j]))
+      row.append("95%")
+      cellText.append( row )
+    rows = [( "Replica " + str(j) ) for j in range (0, len(values))]
+    cols = ("SEED", "MEAN VALUE", "ERROR", "CONFIDENCE LEVEL")
 
+    axs[1].axis('tight')
+    axs[1].axis('off')
+    axs[1].table(cellText = cellText, 
+                          rowLabels = rows,
+                          cellLoc = 'center',
+                          #rowColours = colors,
+                          colLabels=cols,
+                          loc='center')
 
-    plt.savefig( path + "/" + t + ".png" )
+    axs[0].errorbar( x, values, errors, fmt = '.' )
 
+    axs[0].set_title( title, fontsize = 8  )
 
+    plt.subplots_adjust(left=0.2, bottom=0.1)
+
+    plt.savefig( path + "/" + t + ".png" , dpi = 350)
     plt.close()
 
 
 def transientPlotter(path, model, transientList):
+
+
   
     global transientTemplate
 
@@ -693,3 +715,5 @@ def transientPlotter(path, model, transientList):
           plt.savefig(path + "/" + t + ".png")
           plt.legend(seeds)
           plt.close()
+
+
