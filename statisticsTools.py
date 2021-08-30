@@ -685,6 +685,7 @@ def transientPlotter(path, model, transientList):
 
         if len(x) == len(values) and len(x) == len(errors):
           plt.errorbar(x, values, errors, fmt='.')
+          plt.gca().set_xscale('log')
           plt.title( title, fontsize = 10 )
           plt.xlabel("jobs")
           plt.savefig(path + "/" + t + ".png")

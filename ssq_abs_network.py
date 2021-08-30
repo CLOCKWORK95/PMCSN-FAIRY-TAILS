@@ -23,7 +23,7 @@ START =      0.0                                                      # initial 
 STOP  =    840.0                                                      # terminal (close the door) time              [minutes]
 replicas = int(sys.argv[1])
 STEADYLAMBDA = 2
-NODES = 6                                                             # number of nodes (subsystems) in the network
+NODES = 4                                                             # number of nodes (subsystems) in the network
 turn = 0
 
 LAMBDA = 0.0
@@ -477,8 +477,8 @@ plantSeeds(0)
 r = 0
 
 for i in range( 0, replicas ):
-  TRANSIENT_INDEX = 1.2
-  TRANSIENT_MULTIPLIER = 8
+  TRANSIENT_INDEX = 1.1
+  TRANSIENT_MULTIPLIER = 4
   r += 1
 
   try:
@@ -512,7 +512,7 @@ for i in range( 0, replicas ):
   SIMULATION_SEED = getSeed()
 
   if choice == 0:
-    LAMBDA = 1
+    LAMBDA = 2.5
     setLambda( LAMBDA )
   else:
     LAMBDA = STEADYLAMBDA
