@@ -103,8 +103,9 @@ def initialize_transient_organizer(organizer, job_number, transientList):
                             organizer[t][t2][i].append(transientStats[t][t2][i])
                         except:
                             continue
-    return organizer
+    
 
+    return organizer
 
 def analyticalResults( interarrivals ):
 
@@ -401,20 +402,20 @@ def steadyStatePlotter( path, model ):
     
     #plt.legend( [ "Analytical Result: " + realvalue, "Initial Seed: "+ str(seeds[0])] )
 
-    if model == 1:
-      # CLASSIC MODEL
-      if t.startswith("UTILIZATION"):
-        plt.ylim(0,1)
-      #else:
-        #plt.ylim(0, 20)
+    
+    if t.startswith("UTILIZATION"):
+      maxvalue = np.max(values) + np.max(errors)
+      minvalue = np.min(values) - np.max(errors)
+      plt.ylim( minvalue - 0.05, maxvalue + 0.05 )
+    elif t.endswith("NUMBER"):
+      maxvalue = np.max(values) + np.max(errors)
+      minvalue = np.min(values) - np.max(errors)
+      plt.ylim( minvalue - 0.1, maxvalue + 0.1 )
     else:
-      # SIZE BASED MODEL
-      if t.startswith("UTILIZATION"):
-        maxvalue = np.max(values) + np.max(errors)
-        minvalue = np.min(values) - np.max(errors)
-        plt.ylim(minvalue-0.1,maxvalue+0.1)
-      #else:
-        #plt.ylim(0, 14)
+      maxvalue = np.max(values) + np.max(errors)
+      minvalue = np.min(values) - np.max(errors)
+      plt.ylim( minvalue - 0.1, maxvalue + 0.1 )
+    
 
 
 
@@ -675,7 +676,8 @@ def transientPlotter(path, model, transientList):
 
         errors = []
 
-        x = [jobs for jobs in res['JOBS']]
+        #x = [jobs for jobs in res['JOBS']]
+        x = transientList[0]['acquisition_time']
         for subdict in res[t]:
             values.append(subdict['mean'])
             errors.append(subdict['half_confidence_interval'])

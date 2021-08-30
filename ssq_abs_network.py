@@ -22,7 +22,7 @@ from rngs import random
 START =      0.0                                                      # initial time of the observation period      [minutes]
 STOP  =    840.0                                                      # terminal (close the door) time              [minutes]
 replicas = int(sys.argv[1])
-STEADYLAMBDA = 2
+STEADYLAMBDA = 2.5
 NODES = 4                                                             # number of nodes (subsystems) in the network
 turn = 0
 
@@ -211,11 +211,11 @@ def NextBatch():
 
     wait[j] = areas[j].node / nodes[j].index
     delay[j] = areas[j].queue / nodes[j].index
-    queue_population[j] = areas[j].queue / t.current
+    queue_population[j] = areas[j].queue / (t.current-START)
 
 
   global_wait = area / b
-  global_number = area / t.current
+  global_number = area / (t.current-START)
 
   d = 0.0
 
@@ -345,7 +345,7 @@ def transientStats():
       if nodes[j].index != 0:
         wait[j] = areas[j].node / nodes[j].index
         delay[j] = areas[j].queue / nodes[j].index
-      if t.current != START: queue_population[j] = areas[j].queue / t.current
+      if t.current != START: queue_population[j] = areas[j].queue / (t.current-START)
       
 
     if index != transient_index: global_wait = area / (index-transient_index)
@@ -397,7 +397,7 @@ def transientStats():
  
 
     for s in range( 1,  NODES + 1 ):
-      if t.current != START: transientStatistics["avg_utilization" + str(s)].append( sum[s].service / t.current )
+      if t.current != START: transientStatistics["avg_utilization" + str(s)].append( sum[s].service / (t.current - START) )
       else: transientStatistics["avg_utilization" + str(s)].append(transientStatistics["avg_utilization" + str(s)][len(transientStatistics["avg_utilization" + str(s)])-1] )
 
 
@@ -477,8 +477,8 @@ plantSeeds(0)
 r = 0
 
 for i in range( 0, replicas ):
-  TRANSIENT_INDEX = 1.1
-  TRANSIENT_MULTIPLIER = 4
+  TRANSIENT_INDEX = 1.2
+  TRANSIENT_MULTIPLIER = 8
   r += 1
 
   try:
@@ -546,25 +546,29 @@ for i in range( 0, replicas ):
         old_index = index
 
     if (simulationtype == 1):
-      if ( choice == 0 and t.current >= 120 and period == 0):
+      #if ( choice == 0 and t.current >= 120 and period == 0):
+      if ( choice == 0 and t.current >= 800 and period == 0):
         period += 1
         setLambda( 1.5 )
         LAMBDA = getLambda()
         resetTransientStatistics()
 
-      if ( choice == 0 and t.current >= 300 and period == 1):
+      #if ( choice == 0 and t.current >= 300 and period == 1):
+      if ( choice == 0 and t.current >= 1000 and period == 1):
         period += 1
         setLambda( 2.5 )
         LAMBDA = getLambda()
         resetTransientStatistics()
 
-      if ( choice == 0 and t.current >= 420 and period == 2):
+      #if ( choice == 0 and t.current >= 420 and period == 2):
+      if ( choice == 0 and t.current >= 1500 and period == 2):
         period += 1
         setLambda( 1 )
         LAMBDA = getLambda()
         resetTransientStatistics()
 
-      if ( choice == 0 and t.current >= 720 and period == 3):
+      #if ( choice == 0 and t.current >= 720 and period == 3):
+      if ( choice == 0 and t.current >= 1600 and period == 3):
         period += 1
         setLambda( 3.5 )
         LAMBDA = getLambda()
