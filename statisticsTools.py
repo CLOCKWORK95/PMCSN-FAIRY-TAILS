@@ -418,19 +418,19 @@ def steadyStatePlotter( path, model, validation ):
         elif t.endswith("AVG DELAY"):
           l = [ delay for i in range( len(values) ) ]
           realvalue = "{0:6.2f}".format( delay )
-        
+
         elif t.endswith("AVG NUMBER"):
-          if t.startswith("GLOBAL"): 
+          if t.startswith("GLOBAL"):
             l = [ number for i in range( len(values) ) ]
             realvalue = "{0:6.2f}".format( number )
-          else: 
+          else:
             l = [ numberqueue for i in range( len(values) ) ]
             realvalue = "{0:6.2f}".format( numberqueue )
 
         elif t.startswith("UTILIZATION"):
           l = [ utilization for i in range( len(values) ) ]
           realvalue ="{0:6.2f}".format( utilization )
-        
+
         truevalue = np.array( l )
         axs[0].plot( truevalue )
         axs[0].legend(["Analytical result: "+ realvalue ])
@@ -779,22 +779,50 @@ def transientPlotter(path, model, transientList):
 
         errors = []
 
+        jobs = []
+
         #x = [jobs for jobs in res['JOBS']]
         x = transientList[0]['acquisition_time']
         for subdict in res[t]:
             values.append(subdict['mean'])
             errors.append(subdict['half_confidence_interval'])
 
+        for value in jobs_acquisition:
+            jobs.append(value)
+
         title += "\n" + str(SERVERS) + " Servers -  Avg Interarrival time: " + str(interarrivals) + "min"
         title += "\n Finite Horizon Statistics"
 
         if len(x) == len(values) and len(x) == len(errors):
-          plt.errorbar(x, values, errors, fmt='.')
-          plt.gca().set_xscale('log')
-          plt.title( title, fontsize = 10 )
-          plt.xlabel("jobs")
-          plt.savefig(path + "/" + t + ".png")
-          plt.legend(seeds)
-          plt.close()
+            fig, axs = plt.subplots(2, 1)
+            axs[0].set_xscale('log')
+            plt.xlabel("jobs")
+
+            cellText = []
+            rows = []
+            for j in range(len(values)):
+                row = []
+                if j % 3 == 0:
+                    row.append(str(values[j]))
+                    row.append("±" + str(errors[j]))
+                    row.append("95%")
+                    cellText.append(row)
+                    rows.append("n° JOB: " + str(jobs[j]))
+
+            #rows = [("#JOB " + str(j)) for j in jobs]
+            cols = ("MEAN VALUE", "ERROR", "CONFIDENCE LEVEL")
+            axs[1].axis('tight')
+            axs[1].axis('off')
+            axs[1].table(cellText=cellText,
+                        rowLabels=rows,
+                        cellLoc='center',
+                        # rowColours = colors,
+                        colLabels=cols,
+                        loc='center')
+            axs[0].errorbar(x, values, errors, fmt='.')
+            axs[0].set_title(title, fontsize=8)
+            plt.subplots_adjust(left=0.2, bottom=0.1)
+            plt.savefig(path + "/" + t + ".png", dpi=350)
+            plt.close()
 
 
