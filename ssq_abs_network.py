@@ -13,7 +13,7 @@
 
 from statisticsTools import batchMeans, finiteHorizon, steadyStatePlotter, transientPlotter
 from probabilityDistributions import getLambda, setLambda
-from rngs import getSeed, plantSeeds
+from rngs import getSeed, plantSeeds, selectStream
 from serviceCalls import GetServicePareto, GetServiceUniform
 from arrivalCalls import GetArrivalExpo
 import sys, os, json
@@ -22,8 +22,8 @@ from rngs import random
 START =      0.0                                                      # initial time of the observation period      [minutes]
 STOP  =    840.0                                                      # terminal (close the door) time              [minutes]
 replicas = int(sys.argv[1])
-STEADYLAMBDA = 2.5
-NODES = 4                                                             # number of nodes (subsystems) in the network
+STEADYLAMBDA = 2
+NODES = 3                                                             # number of nodes (subsystems) in the network
 turn = 0
 
 LAMBDA = 0.0
@@ -157,17 +157,19 @@ def selectNode( nodes ):
 
   return choices[ winner ]
 
+
 def selectNodeUniform( nodes ):
 # -------------------------------------------------
 # * return the index of the next node to be used.
 # * -----------------------------------------------
+  selectStream(2)
   r = random()
   s = 0
 
-  if r <=0.33:
+  if r <=0.33333333333333:
     s = 0
   else:
-    if r <= 0.66:
+    if r <= 0.66666666666666:
       s = 1
     else:
       s = 2
@@ -439,10 +441,12 @@ print(" Infinite Horizon ( Steady-State Statistics - Batch Means)  .......... 1"
 choice = int( input("\n Please, type your choice here: ") )
 b = 512
 k = 0
+validation = 0
 
 if choice == 1:
   b = int( input("\n Type a size for the batch : ") )
   k = int( input("\n Type a number of batches : "))
+  validation = int( input("\n Are you validating the system? yes:1 / no: 0"))
 else:
   print(" Which type of Transient Simulation?\n")
   print(" Fixed Interarrival rate ............................. 0")
@@ -595,7 +599,7 @@ for i in range( 0, replicas ):
 
     if ( e == 0 ):    
       # process an ARRIVAL
-      events[0].node_position = selectNode( nodes )                        
+      events[0].node_position = selectNodeUniform( nodes )                        
       nodes[ events[0].node_position ].number += 1
       number += 1
 
@@ -710,6 +714,6 @@ for i in range( 0, replicas ):
     }
 
 if choice == 1:
-  steadyStatePlotter( dirName, 1 )
+  steadyStatePlotter( dirName, 1, validation)
 else:
   transientPlotter( dirName, 1, transientList)

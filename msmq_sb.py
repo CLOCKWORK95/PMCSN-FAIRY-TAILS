@@ -22,9 +22,9 @@ import sys, json, os
 START =   0.0                                                         # initial (open the door) time       [ minutes ] 
 STOP  =   840.0                                                       # terminal (close the door) time     [ minutes ]
 replicas = int(sys.argv[1])
-STEADYLAMBDA = 1
+STEADYLAMBDA = 6
 QUEUES = 3                                                            # number of queues in the node
-SERVERS = 6                                                           # number of servers in the node
+SERVERS = 1                                                           # number of servers in the node
 multiqueue = None                                                     # multi queues size-based structure 
 X1 = 1.5                                                              # first size boundary                [ minutes ]
 X2 = 4.5                                                              # second size boundary               [ minutes ]
@@ -439,10 +439,12 @@ choice = int( input("\n Please, type your choice here: ") )
 
 b = 512
 k = 0
+validation = 0
 
 if choice == 1:
   b = int( input("\n Type a size for the batch : ") )
   k = int( input("\n Type a number of batches : "))
+  validation = int( input("\n Are you validating the system? yes:1 / no: 0"))
 else:
   print(" Which type of Transient Simulation?\n")
   print(" Fixed Interarrival rate ............................. 0")
@@ -711,6 +713,6 @@ for i in range( 0, replicas ):
     }
 
 if choice == 1:
-  steadyStatePlotter( dirName, 0 )
+  steadyStatePlotter( dirName, 0, validation )
 else:
   transientPlotter( dirName, 0, transientList)

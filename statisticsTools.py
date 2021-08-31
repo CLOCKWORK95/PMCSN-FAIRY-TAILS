@@ -108,17 +108,58 @@ def initialize_transient_organizer(organizer, job_number, transientList):
     return organizer
 
 
-def analyticalResults( interarrivals ):
+def analyticalResults( interarrivals, model ):
 
-  LAMBDA = 1/interarrivals
+  if model == 1:
 
-  utilization =  ( LAMBDA / 3 ) * 4.42 
+    LAMBDA = 1/interarrivals
 
-  delay = ( ( LAMBDA / 6 ) * 32.2791123 ) / ( 1 - utilization )
+    utilization =  ( LAMBDA / 3 ) * 4.42 
 
-  wait = delay + 4.42
+    delay = ( ( LAMBDA / 6 ) * 32.2791123 ) / ( 1 - utilization )
 
-  return delay, wait, utilization
+    wait = delay + 4.42
+
+    numberqueue = delay * ( LAMBDA / 3 )
+
+    number = (numberqueue + utilization) * 3
+
+    return delay, wait, numberqueue, number, utilization
+  
+  else:
+
+    LAMBDA = 1/interarrivals
+
+    p = [ 0.199991414, 0.4436064477, 0.3564021383 ]
+
+    utilization =  ( LAMBDA ) * 4.42 
+
+    delay = []
+    delay.append( ( ( LAMBDA / 2 ) * 32.2791123 ) / ( 1 - LAMBDA  * 0.245721 ) )
+    delay.append( ( ( LAMBDA / 2 ) * 32.2791123 ) / (( 1 - LAMBDA  * 0.245721 )*(1 - LAMBDA  * 1.42502)) )
+    delay.append( ( ( LAMBDA / 2 ) * 32.2791123 ) / (( 1 - LAMBDA  * 4.434939 )*(1 - LAMBDA  * 1.42502)) )
+
+    service = []
+    service.append( ( 0.520762/p[0] ) * ( 0.47185 ) )
+    service.append( ( 0.520762/p[1] ) * ( 2.26456 ) )
+    service.append( ( 0.520762/p[2] ) * ( 5.77984 ) )
+
+    wait = []
+    wait.append( delay[0] + service[0] )
+    wait.append( delay[1] + service[1] )
+    wait.append( delay[2] + service[2] )
+
+    number = []
+    number.append( delay[0] * ( LAMBDA * p[0] ) )
+    number.append( delay[1] * ( LAMBDA * p[1] ) )
+    number.append( delay[2] * ( LAMBDA * p[2] ) )
+
+    globalwait = p[0]*wait[0] + p[1]*wait[1] + p[2]*wait[2] 
+    globaldelay = p[0]*delay[0] + p[1]*delay[1] + p[2]*delay[2] 
+    globalnumber = number[0] + number[1] + number[2] + utilization
+
+
+    return globalwait, globaldelay, globalnumber, delay, wait, number, utilization
 
 
 def estimate( valuesArray ):
@@ -305,11 +346,9 @@ def finiteHorizon(finiteHorizonDictionary):
     transientTemplate["servers"] = finiteHorizonDictionary["servers"]
 
 
-def steadyStatePlotter( path, model ):
+def steadyStatePlotter( path, model, validation ):
 
   global batchMeanTemplate
-
-  delay, wait, utilization = analyticalResults( batchMeanTemplate["interarrival"] )
 
   directories = os.listdir( path )
 
@@ -326,20 +365,12 @@ def steadyStatePlotter( path, model ):
       title = "SSQ Abstract Network - " + t 
 
     seeds = []
-
     values = []
-
     errors = []
-
     k = 0
-
     b = 0
-
     interarrival = 0
-
     servers = 0
-
-    queues = 0
 
     for d in directories:
 
@@ -372,34 +403,97 @@ def steadyStatePlotter( path, model ):
             values.append( data[t]["mean"] )
             errors.append( data[t]["half_confidence_interval"] )
     
-    
     x = [ i for i in range( len(values) ) ]
 
     fig, axs = plt.subplots(2,1)
 
-    realvalue = ""
+    if validation == 1:
 
-    '''
-     if t.startswith("GLOBAL AVG WAIT"):
+      if model == 1:
+        delay, wait, numberqueue, number, utilization = analyticalResults( batchMeanTemplate["interarrival"] , model )
+        if t.endswith("AVG WAIT"):
+          l = [ wait for i in range( len(values) ) ]
+          realvalue = "{0:6.2f}".format( wait )
 
-      l = [ wait for i in range( len(values) ) ]
-      realvalue = "{0:6.2f}".format( wait )
-      truevalue = np.array( l )
-      plt.plot( truevalue )
+        elif t.endswith("AVG DELAY"):
+          l = [ delay for i in range( len(values) ) ]
+          realvalue = "{0:6.2f}".format( delay )
+        
+        elif t.endswith("AVG NUMBER"):
+          if t.startswith("GLOBAL"): 
+            l = [ number for i in range( len(values) ) ]
+            realvalue = "{0:6.2f}".format( number )
+          else: 
+            l = [ numberqueue for i in range( len(values) ) ]
+            realvalue = "{0:6.2f}".format( numberqueue )
 
-    elif t.startswith("GLOBAL AVG DELAY"):
+        elif t.startswith("UTILIZATION"):
+          l = [ utilization for i in range( len(values) ) ]
+          realvalue ="{0:6.2f}".format( utilization )
+        
+        truevalue = np.array( l )
+        axs[0].plot( truevalue )
+        axs[0].legend(["Analytical result: "+ realvalue ])
 
-      l = [ delay for i in range( len(values) ) ]
-      realvalue = "{0:6.2f}".format( delay )
-      truevalue = np.array( l )
-      plt.plot( truevalue )
+      else:
+        globalwait, globaldelay, globalnumber, delay, wait, number, utilization = analyticalResults( batchMeanTemplate["interarrival"] , model )
 
-    elif t.startswith("UTILIZATION"):
+        if t.startswith("GLOBAL AVG WAIT"):
+          l = [ globalwait for i in range( len(values) ) ]
+          realvalue = "{0:6.2f}".format( globalwait )
 
-      l = [ utilization for i in range( len(values) ) ]
-      realvalue ="{0:6.2f}".format( utilization )
-      truevalue = np.array( l )
-      plt.plot( truevalue ) '''
+        elif t.startswith("GLOBAL AVG DELAY"):
+          l = [ globaldelay for i in range( len(values) ) ]
+          realvalue = "{0:6.2f}".format( globaldelay )
+        
+        elif t.startswith("GLOBAL AVG NUMBER"):
+          l = [ globalnumber for i in range( len(values) ) ]
+          realvalue = "{0:6.2f}".format( globalnumber )
+          
+        elif t.startswith("QUEUE1 AVG WAIT"):
+          l = [ wait[0] for i in range( len(values) ) ]
+          realvalue = "{0:6.2f}".format( wait[0] )
+
+        elif t.startswith("QUEUE1 AVG DELAY"):
+          l = [ delay[0] for i in range( len(values) ) ]
+          realvalue = "{0:6.2f}".format( delay[0] )
+        
+        elif t.startswith("QUEUE1 AVG NUMBER"):
+          l = [ number[0] for i in range( len(values) ) ]
+          realvalue = "{0:6.2f}".format( number[0] )
+        
+        elif t.startswith("QUEUE2 AVG WAIT"):
+          l = [ wait[1] for i in range( len(values) ) ]
+          realvalue = "{0:6.2f}".format( wait[1] )
+
+        elif t.startswith("QUEUE2 AVG DELAY"):
+          l = [ delay[1] for i in range( len(values) ) ]
+          realvalue = "{0:6.2f}".format( delay[1] )
+        
+        elif t.startswith("QUEUE2 AVG NUMBER"):
+          l = [ number[1] for i in range( len(values) ) ]
+          realvalue = "{0:6.2f}".format( number[1] )
+
+        elif t.startswith("QUEUE3 AVG WAIT"):
+          l = [ wait[2] for i in range( len(values) ) ]
+          realvalue = "{0:6.2f}".format( wait[2] )
+
+        elif t.startswith("QUEUE3 AVG DELAY"):
+          l = [ delay[2] for i in range( len(values) ) ]
+          realvalue = "{0:6.2f}".format( delay[2] )
+
+        elif t.startswith("QUEUE3 AVG NUMBER"):
+          l = [ number[2] for i in range( len(values) ) ]
+          realvalue = "{0:6.2f}".format( number[2] )
+          
+        elif t.startswith("UTILIZATION"):
+          l = [ utilization for i in range( len(values) ) ]
+          realvalue ="{0:6.2f}".format( utilization )
+        
+        truevalue = np.array( l )
+        axs[0].plot( truevalue )
+        axs[0].legend(["Analytical result: "+ realvalue ])
+
 
     if t.startswith("UTILIZATION"):
       maxvalue = np.max(values) + np.max(errors)
@@ -412,10 +506,9 @@ def steadyStatePlotter( path, model ):
     else:
       maxvalue = np.max(values) + np.max(errors)
       minvalue = np.min(values) - np.max(errors)
-      plt.ylim( minvalue - 0.1, maxvalue + 0.1 )
-    
-    cellText = []
+      plt.ylim( minvalue - 0.1, maxvalue + 0.1 )  
 
+    cellText = []
     for j in range(len(values)):
       row = []
       row.append(str(seeds[j]))
@@ -425,7 +518,6 @@ def steadyStatePlotter( path, model ):
       cellText.append( row )
     rows = [( "Replica " + str(j) ) for j in range (0, len(values))]
     cols = ("SEED", "MEAN VALUE", "ERROR", "CONFIDENCE LEVEL")
-
     axs[1].axis('tight')
     axs[1].axis('off')
     axs[1].table(cellText = cellText, 
@@ -434,21 +526,15 @@ def steadyStatePlotter( path, model ):
                           #rowColours = colors,
                           colLabels=cols,
                           loc='center')
-
     axs[0].errorbar( x, values, errors, fmt = '.' )
-
     axs[0].set_title( title, fontsize = 8  )
-
     plt.subplots_adjust(left=0.2, bottom=0.1)
-
     plt.savefig( path + "/" + t + ".png" , dpi = 350)
     plt.close()
 
 
 def transientPlotter(path, model, transientList):
 
-
-  
     global transientTemplate
 
     interarrivals = transientTemplate["interarrival"]
@@ -496,11 +582,6 @@ def transientPlotter(path, model, transientList):
           center_name_3: {"avg_wait": [], "avg_delay": [], "avg_number": []},
           "mean_conditional_slowdown": {"(1.24)": [], "(2.65)": [], "(4.42)": [], "(8.26)": []}
       }
-
-    #SE FISSATO
-    delay, wait, utilization = analyticalResults(interarrivals)
-
-    directories = os.listdir(path)
 
     jobs_acquisition = transientList[0]['index']
     job_number = len(transientList[0]['index'])
