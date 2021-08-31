@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os, sys, json
-from math import sqrt, floor
+from math import ceil, sqrt, floor
 from rvms import idfStudent
 from pprint import pprint
 
@@ -533,7 +533,7 @@ def steadyStatePlotter( path, model, validation ):
     plt.close()
 
 
-def transientPlotter(path, model, transientList):
+def transientPlotter(path, model, transientList, realistic):
 
     global transientTemplate
 
@@ -790,7 +790,8 @@ def transientPlotter(path, model, transientList):
         for value in jobs_acquisition:
             jobs.append(value)
 
-        title += "\n" + str(SERVERS) + " Servers -  Avg Interarrival time: " + str(interarrivals) + "min"
+        if realistic == 0: title += "\n" + str(SERVERS) + " Servers -  Avg Interarrival time: " + str(interarrivals) + "min"
+        else: title += "\n" + str(SERVERS) + " Servers -  Avg Interarrival time: variable" 
         title += "\n Finite Horizon Statistics"
 
         if len(x) == len(values) and len(x) == len(errors):
@@ -802,7 +803,7 @@ def transientPlotter(path, model, transientList):
             rows = []
             for j in range(len(values)):
                 row = []
-                if j % 3 == 0:
+                if j %  round( len(values) / 8 ) == 0:
                     row.append(str(values[j]))
                     row.append("±" + str(errors[j]))
                     row.append("95%")
@@ -821,7 +822,7 @@ def transientPlotter(path, model, transientList):
                         loc='center')
             axs[0].errorbar(x, values, errors, fmt='.')
             axs[0].set_title(title, fontsize=8)
-            plt.subplots_adjust(left=0.2, bottom=0.1)
+            plt.subplots_adjust(left=0.25, bottom=0.1)
             plt.savefig(path + "/" + t + ".png", dpi=350)
             plt.close()
 

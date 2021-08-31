@@ -716,4 +716,4 @@ for i in range( 0, replicas ):
 if choice == 1:
   steadyStatePlotter( dirName, 1, validation)
 else:
-  transientPlotter( dirName, 1, transientList)
+  transientPlotter( dirName, 1, transientList, simulationtype )
