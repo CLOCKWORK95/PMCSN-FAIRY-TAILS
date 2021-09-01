@@ -22,8 +22,9 @@ from rngs import random
 START =      0.0                                                      # initial time of the observation period      [minutes]
 STOP  =    840.0                                                      # terminal (close the door) time              [minutes]
 replicas = int(sys.argv[1])
-STEADYLAMBDA = 2
-NODES = 3                                                             # number of nodes (subsystems) in the network
+STEADYLAMBDA = 1.0
+TRANSIENTLAMBDA = 1.0
+NODES = 6                                                             # number of nodes (subsystems) in the network
 turn = 0
 
 LAMBDA = 0.0
@@ -334,10 +335,14 @@ def transientStats():
     transientStatistics["acquisition_time"].append(t.current)
     transientStatistics["index"].append(index)
 
-    if nodes[0].index != 0: transientStatistics["mean_conditional_slowdown"]["(1.24)"].append( 1 + (areas[0].queue / nodes[0].index) / 1.24 )
-    if nodes[1].index != 0: transientStatistics["mean_conditional_slowdown"]["(2.65)"].append( 1 + (areas[1].queue / nodes[1].index) / 2.65 )
-    if nodes[1].index != 0: transientStatistics["mean_conditional_slowdown"]["(4.42)"].append( 1 + (areas[1].queue / nodes[1].index) / 4.42 )
-    if nodes[2].index != 0: transientStatistics["mean_conditional_slowdown"]["(8.26)"].append( 1 + (areas[2].queue / nodes[2].index) / 8.26 )
+    if NODES >= 1 : 
+      if nodes[0].index != 0: transientStatistics["mean_conditional_slowdown"]["(1.24)"].append( 1 + (areas[0].queue / nodes[0].index) / 1.24 )
+    if NODES >= 2 :
+      if nodes[1].index != 0: transientStatistics["mean_conditional_slowdown"]["(2.65)"].append( 1 + (areas[1].queue / nodes[1].index) / 2.65 )
+    if NODES >= 2 : 
+      if nodes[1].index != 0: transientStatistics["mean_conditional_slowdown"]["(4.42)"].append( 1 + (areas[1].queue / nodes[1].index) / 4.42 )
+    if NODES >= 3 : 
+      if nodes[2].index != 0: transientStatistics["mean_conditional_slowdown"]["(8.26)"].append( 1 + (areas[2].queue / nodes[2].index) / 8.26 )
 
     for s in range( 1,  NODES + 1 ):
       transientStatistics["avg_utilization" + str(s)].append( sum[s].service / t.current )
@@ -392,11 +397,14 @@ def transientStats():
     transientStatistics["index"].append(index)
 
     
-    if nodes[0].index != 0: transientStatistics["mean_conditional_slowdown"]["(1.24)"].append( 1 + (areas[0].queue / nodes[0].index) / 1.24 )
-    if nodes[1].index != 0: transientStatistics["mean_conditional_slowdown"]["(2.65)"].append( 1 + (areas[1].queue / nodes[1].index) / 2.65 )
-    if nodes[1].index != 0: transientStatistics["mean_conditional_slowdown"]["(4.42)"].append( 1 + (areas[1].queue / nodes[1].index) / 4.42 )
-    if nodes[2].index != 0: transientStatistics["mean_conditional_slowdown"]["(8.26)"].append( 1 + (areas[2].queue / nodes[2].index) / 8.26 )
- 
+    if NODES >= 1 : 
+      if nodes[0].index != 0: transientStatistics["mean_conditional_slowdown"]["(1.24)"].append( 1 + (areas[0].queue / nodes[0].index) / 1.24 )
+    if NODES >= 2 :
+      if nodes[1].index != 0: transientStatistics["mean_conditional_slowdown"]["(2.65)"].append( 1 + (areas[1].queue / nodes[1].index) / 2.65 )
+    if NODES >= 2 : 
+      if nodes[1].index != 0: transientStatistics["mean_conditional_slowdown"]["(4.42)"].append( 1 + (areas[1].queue / nodes[1].index) / 4.42 )
+    if NODES >= 3 : 
+      if nodes[2].index != 0: transientStatistics["mean_conditional_slowdown"]["(8.26)"].append( 1 + (areas[2].queue / nodes[2].index) / 8.26 )
 
     for s in range( 1,  NODES + 1 ):
       if t.current != START: transientStatistics["avg_utilization" + str(s)].append( sum[s].service / (t.current - START) )
@@ -516,7 +524,7 @@ for i in range( 0, replicas ):
   SIMULATION_SEED = getSeed()
 
   if choice == 0:
-    LAMBDA = 2.5
+    LAMBDA = TRANSIENTLAMBDA
     setLambda( LAMBDA )
   else:
     LAMBDA = STEADYLAMBDA
@@ -599,7 +607,7 @@ for i in range( 0, replicas ):
 
     if ( e == 0 ):    
       # process an ARRIVAL
-      events[0].node_position = selectNodeUniform( nodes )                        
+      events[0].node_position = selectNode( nodes )                        
       nodes[ events[0].node_position ].number += 1
       number += 1
 

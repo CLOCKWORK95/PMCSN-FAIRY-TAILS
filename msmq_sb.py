@@ -22,9 +22,10 @@ import sys, json, os
 START =   0.0                                                         # initial (open the door) time       [ minutes ] 
 STOP  =   840.0                                                       # terminal (close the door) time     [ minutes ]
 replicas = int(sys.argv[1])
-STEADYLAMBDA = 6
+STEADYLAMBDA = 5.0
+TRANSIENTLAMBDA = 1.0
 QUEUES = 3                                                            # number of queues in the node
-SERVERS = 1                                                           # number of servers in the node
+SERVERS = 6                                                           # number of servers in the node
 multiqueue = None                                                     # multi queues size-based structure 
 X1 = 1.5                                                              # first size boundary                [ minutes ]
 X2 = 4.5                                                              # second size boundary               [ minutes ]
@@ -516,7 +517,7 @@ for i in range( 0, replicas ):
   SIMULATION_SEED = getSeed()
 
   if choice == 0:
-    LAMBDA = 2.5
+    LAMBDA = TRANSIENTLAMBDA
     setLambda( LAMBDA )
   else:
     LAMBDA = STEADYLAMBDA
@@ -715,4 +716,4 @@ for i in range( 0, replicas ):
 if choice == 1:
   steadyStatePlotter( dirName, 0, validation )
 else:
-  transientPlotter( dirName, 0, transientList)
+  transientPlotter( dirName, 0, transientList, simulationtype )
