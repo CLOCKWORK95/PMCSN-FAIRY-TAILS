@@ -500,19 +500,23 @@ k = 0
 validation = 0
 TRANSIENT_INDEX = 1.2
 
-print(" Do you want to record a track of an output statistics?\n")
+print(" Which type of simulation do you want to perform?\n")
 print(" Finite Horizon ( Transient Statistics ) ............................. 0")
 print(" Infinite Horizon ( Steady-State Statistics - Batch Means)  .......... 1")
 choice = int(input("\n Please, type your choice here: "))
 
 if choice == 1:
-    b = int(input("\n Type a size for the batch : "))
-    k = int(input("\n Type a number of batches : "))
-    validation = int(input("\n Are you validating the system? yes:1 / no: 0 : "))
+    b =             int(input("\n Type a size for the batch  (b)                 : "))
+    k =             int(input("\n Type the number of batches (k)                 : "))
+    STEADYLAMBDA =  float(input("\n Type a value for the interarrival time         : "))
+    NODES =         int(input("\n Type the number of nodes [min:1, max:6]        : "))
+    validation =    int(input("\n Are you validating the system? [yes:1 / no: 0] : "))
 else:
-    print(" Which type of Transient Simulation?\n")
-    print(" Fixed Interarrival rate ............................. 0")
-    print(" Variable ............................................ 1")
+    TRANSIENTLAMBDA =  float(input("\n Type a value for the interarrival time :"))
+    NODES =            int(input("\n Type the number of nodes [min:1, max:6]:"))
+    print(" Chose a type of Transient Simulation:\n")
+    print(" Fixed Interarrival time ............................. 0")
+    print(" Variable Interarrival time........................... 1")
     simulationtype = int(input("\n Please, type your choice here: "))
 
 # Reading id from txt file to determine the number of ensamble to create
@@ -654,7 +658,7 @@ for i in range(0, replicas):
 
         if e == 0:
             # process an ARRIVAL
-            events[0].node_position = selectNodeUniform(nodes)
+            events[0].node_position = selectNode(nodes)
             nodes[events[0].node_position].number += 1
             number += 1
 
