@@ -1,0 +1,167 @@
+{
+    "interarrival": 1.0,
+    "servers": 4,
+    "seed": 1195696737,
+    "GLOBAL AVG WAIT": {
+        "mean": 7753.090293866784,
+        "half_confidence_interval": 1085.172411792095,
+        "stdev": 4238.531462176246,
+        "confidence": 95
+    },
+    "GLOBAL AVG DELAY": {
+        "mean": 7748.666500448938,
+        "half_confidence_interval": 1085.170868693325,
+        "stdev": 4238.525435048561,
+        "confidence": 95
+    },
+    "GLOBAL AVG NUMBER": {
+        "mean": 7007.574606913842,
+        "half_confidence_interval": 979.492049299048,
+        "stdev": 3825.7587668022065,
+        "confidence": 95
+    },
+    "QUEUE1 AVG WAIT": {
+        "mean": 7865.545500937029,
+        "half_confidence_interval": 1113.266263909042,
+        "stdev": 4348.262114003967,
+        "confidence": 95
+    },
+    "QUEUE1 AVG DELAY": {
+        "mean": 7861.075516965138,
+        "half_confidence_interval": 1113.2539648253542,
+        "stdev": 4348.214075505568,
+        "confidence": 95
+    },
+    "QUEUE1 AVG NUMBER": {
+        "mean": 1750.8357425566685,
+        "half_confidence_interval": 244.87384121367432,
+        "stdev": 956.4429292245574,
+        "confidence": 95
+    },
+    "QUEUE2 AVG WAIT": {
+        "mean": 7757.755146643786,
+        "half_confidence_interval": 1079.7997407318294,
+        "stdev": 4217.546561456874,
+        "confidence": 95
+    },
+    "QUEUE2 AVG DELAY": {
+        "mean": 7753.318734169588,
+        "half_confidence_interval": 1079.8007146895236,
+        "stdev": 4217.550365599224,
+        "confidence": 95
+    },
+    "QUEUE2 AVG NUMBER": {
+        "mean": 1750.951245167111,
+        "half_confidence_interval": 244.87196237892448,
+        "stdev": 956.4355907591552,
+        "confidence": 95
+    },
+    "QUEUE3 AVG WAIT": {
+        "mean": 7711.322528962136,
+        "half_confidence_interval": 1091.6469800412574,
+        "stdev": 4263.820218994863,
+        "confidence": 95
+    },
+    "QUEUE3 AVG DELAY": {
+        "mean": 7706.930205448088,
+        "half_confidence_interval": 1091.6389080030126,
+        "stdev": 4263.788690743967,
+        "confidence": 95
+    },
+    "QUEUE3 AVG NUMBER": {
+        "mean": 1750.9506451760672,
+        "half_confidence_interval": 244.87378506118918,
+        "stdev": 956.4427099008146,
+        "confidence": 95
+    },
+    "QUEUE4 AVG WAIT": {
+        "mean": 7713.631350441096,
+        "half_confidence_interval": 1073.5329603366781,
+        "stdev": 4193.069394895357,
+        "confidence": 95
+    },
+    "QUEUE4 AVG DELAY": {
+        "mean": 7709.217179643544,
+        "half_confidence_interval": 1073.5359395036146,
+        "stdev": 4193.081031104179,
+        "confidence": 95
+    },
+    "QUEUE4 AVG NUMBER": {
+        "mean": 1750.8369740139972,
+        "half_confidence_interval": 244.87246108117196,
+        "stdev": 956.4375386202906,
+        "confidence": 95
+    },
+    "QUEUE5 AVG WAIT": {
+        "mean": 0.0,
+        "half_confidence_interval": 0.0,
+        "stdev": 0.0,
+        "confidence": 95
+    },
+    "QUEUE5 AVG DELAY": {
+        "mean": 0.0,
+        "half_confidence_interval": 0.0,
+        "stdev": 0.0,
+        "confidence": 95
+    },
+    "QUEUE5 AVG NUMBER": {
+        "mean": 0.0,
+        "half_confidence_interval": 0.0,
+        "stdev": 0.0,
+        "confidence": 95
+    },
+    "QUEUE6 AVG WAIT": {
+        "mean": 0.0,
+        "half_confidence_interval": 0.0,
+        "stdev": 0.0,
+        "confidence": 95
+    },
+    "QUEUE6 AVG DELAY": {
+        "mean": 0.0,
+        "half_confidence_interval": 0.0,
+        "stdev": 0.0,
+        "confidence": 95
+    },
+    "QUEUE6 AVG NUMBER": {
+        "mean": 0.0,
+        "half_confidence_interval": 0.0,
+        "stdev": 0.0,
+        "confidence": 95
+    },
+    "UTILIZATION1": {
+        "mean": 1.0000313099779374,
+        "half_confidence_interval": 0.0004335504452139295,
+        "stdev": 0.0016933873203107406,
+        "confidence": 95
+    },
+    "UTILIZATION2": {
+        "mean": 0.9999725867700869,
+        "half_confidence_interval": 0.0005092157228083817,
+        "stdev": 0.001988925297680394,
+        "confidence": 95
+    },
+    "UTILIZATION3": {
+        "mean": 1.000025911033181,
+        "half_confidence_interval": 0.0005215981340650575,
+        "stdev": 0.0020372892618935583,
+        "confidence": 95
+    },
+    "UTILIZATION4": {
+        "mean": 0.9999423479289397,
+        "half_confidence_interval": 0.0004242711071823502,
+        "stdev": 0.0016571435255297202,
+        "confidence": 95
+    },
+    "UTILIZATION5": {
+        "mean": 0.0,
+        "half_confidence_interval": 0.0,
+        "stdev": 0.0,
+        "confidence": 95
+    },
+    "UTILIZATION6": {
+        "mean": 0.0,
+        "half_confidence_interval": 0.0,
+        "stdev": 0.0,
+        "confidence": 95
+    }
+}
