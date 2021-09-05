@@ -821,6 +821,13 @@ def transientPlotter(path, model, transientList, realistic):
                         colLabels=cols,
                         loc='center')
             axs[0].errorbar(x, values, errors, fmt='.')
+            axs[0].axvline(x=120, color = 'g', linestyle='dashed')
+            axs[0].axvline(x=300, color = 'r', linestyle='dashed')
+            axs[0].axvline(x=420, color = 'c', linestyle='dashed')
+            axs[0].axvline(x=720, color = 'm', linestyle='dashed')
+            axs[0].axvline(x=1200, color = 'k')
+
+
             axs[0].set_title(title, fontsize=8)
             plt.subplots_adjust(left=0.25, bottom=0.1)
             plt.savefig(path + "/" + t + ".png", dpi=350)

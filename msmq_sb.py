@@ -23,7 +23,7 @@ START =   0.0                                                         # initial 
 STOP  =   840.0                                                       # terminal (close the door) time     [ minutes ]
 replicas = int(sys.argv[1])
 STEADYLAMBDA = 5.0
-TRANSIENTLAMBDA = 1.0
+TRANSIENTLAMBDA = 2.0
 QUEUES = 3                                                            # number of queues in the node
 SERVERS = 6                                                           # number of servers in the node
 multiqueue = None                                                     # multi queues size-based structure 
@@ -479,7 +479,7 @@ plantSeeds(0)
 r = 0
 
 for i in range( 0, replicas ):
-  TRANSIENT_INDEX = 1.2
+  TRANSIENT_INDEX = 1.14
   TRANSIENT_MULTIPLIER = 8
   r += 1
   
@@ -564,19 +564,19 @@ for i in range( 0, replicas ):
 
       if (choice == 0 and t.current >= 300 and period == 1):
         period += 1
-        setLambda(2.5)
+        setLambda(2.0)
         LAMBDA = getLambda()
         resetTransientStatistics()
 
       if (choice == 0 and t.current >= 420 and period == 2):
         period += 1
-        setLambda(1)
+        setLambda(1.0)
         LAMBDA = getLambda()
         resetTransientStatistics()
 
       if (choice == 0 and t.current >= 720 and period == 3):
         period += 1
-        setLambda(3.5)
+        setLambda(3.0)
         LAMBDA = getLambda()
         resetTransientStatistics()
 
