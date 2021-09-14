@@ -3,8 +3,9 @@ import os
 from math import sqrt
 import matplotlib.pyplot as plt
 import numpy as np
-
 from rvms import idfStudent
+
+INFINITE = 99999999999999
 
 batchMeanTemplate = {
     "interarrival": 0,
@@ -840,3 +841,78 @@ def transientPlotter(path, model, transientList, realistic):
             plt.subplots_adjust(left=0.25, bottom=0.1)
             plt.savefig(path + "/" + t + ".png", dpi=350)
             plt.close()
+
+
+def transientPlotter2(path, model, transientList, realistic, statistics):
+
+    global transientTemplate
+    interarrivals = transientTemplate["interarrival"]
+    SERVERS = int(transientTemplate["servers"])
+    x = transientList[0]["index"]
+    if realistic: x = transientList[0]["acquisition_time"]
+    edgecols = ['b', 'g', 'r', 'k', 'm']
+    minlenght = INFINITE
+
+    for t in transientList:
+        minlenght = min( minlenght, len(t["global"]["avg_"+statistics]) )
+
+    if model == 0:
+        for k in transientList[0].keys():
+            legend = []
+            if k in ["global", "q1", "q2", "q3" ]:
+                i = 0
+                for t in transientList:
+                    if not realistic: plt.xscale('log')
+                    x = t["acquisition_time"][:minlenght]
+                    if not realistic : plt.scatter( x, t[str(k)]["avg_"+statistics][:minlenght], facecolors='none', edgecolors=edgecols[i] )    
+                    else:  plt.scatter( x, t[str(k)]["avg_"+statistics][:minlenght], facecolors='none', edgecolors=edgecols[i], s=10 ) 
+                    legend.append("Initial Seed : " + str(t["seed"]))
+                    i += 1
+
+                title = "Advanced :: AVERAGE "+ statistics.upper()+ " " + str(k) + " - TRANSIENT BEHAVIOUR"
+                if realistic:   title += "\n Avg Interarrivals: variable - Servers : variable" 
+                else:           title += "\n Avg Interarrivals: " + str(interarrivals) + " - Servers : " + str(SERVERS)
+
+                plt.legend(legend)
+                if realistic == 1 :
+                    plt.axvline(x = 120, linestyle='dashed', color = 'k')
+                    plt.axvline(x = 300, linestyle='dashed', color = 'k')
+                    plt.axvline(x = 420, linestyle='dashed', color = 'k')
+                    plt.axvline(x = 720, linestyle='dashed', color = 'k')
+                    plt.axvline(x = 840, linestyle='dashed', color = 'k')
+                plt.xlabel("Time (min)")
+                #plt.ylim(0, 20)
+                plt.title(title)
+                plt.savefig(path + "/" + k + "_avg_"+statistics+"_TP2.png", dpi=350)       
+                plt.close()
+    
+    else:
+        for k in transientList[0].keys():
+            legend = []
+            if k in ["global", "c1", "c2", "c3", "c4", "c5", "c6" ]:
+                i = 0
+                for t in transientList:
+                    if not realistic: plt.xscale('log')
+                    x = t["acquisition_time"][:minlenght]
+                    if not realistic : plt.scatter( x, t[str(k)]["avg_delay"][:minlenght], facecolors='none', edgecolors=edgecols[i] )    
+                    else:  plt.plot( x, t[str(k)]["avg_delay"][:minlenght] ) 
+                    legend.append("Initial Seed : " + str(t["seed"]))
+                    i += 1
+ 
+                title = "Classic :: AVERAGE DELAY " + str(k) + " - TRANSIENT BEHAVIOUR"
+                if realistic:   title += "\n Avg Interarrivals: variable - Servers : " + str(SERVERS)
+                else:           title += "\n Avg Interarrivals: " + str(interarrivals) + " - Servers : " + str(SERVERS)
+
+                if realistic == 1 :
+                    plt.axvline(x = 120, linestyle='dashed', color = 'k')
+                    plt.axvline(x = 300, linestyle='dashed', color = 'k')
+                    plt.axvline(x = 420, linestyle='dashed', color = 'k')
+                    plt.axvline(x = 720, linestyle='dashed', color = 'k')
+                    plt.axvline(x = 840, linestyle='dashed', color = 'k')
+
+                plt.legend( legend )
+                plt.title(title)
+                plt.savefig(path + "/" + k + "_avg_delay_TP2.png", dpi=350)       
+                plt.close()
+
+    

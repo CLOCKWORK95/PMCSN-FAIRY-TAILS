@@ -11,12 +11,13 @@
 # * --------------------------------------------------------------------------------------------------------------------
 # */
 
-from statisticsTools import batchMeans, finiteHorizon, steadyStatePlotter, transientPlotter
+from statisticsTools import batchMeans, finiteHorizon, steadyStatePlotter, transientPlotter, transientPlotter2
 from probabilityDistributions import getLambda, setLambda
 from rngs import getSeed, plantSeeds
 from arrivalCalls import GetArrivalExpo
 from serviceCalls import GetServicePareto
 import sys, json, os
+from pprint import pprint
 
 START = 0.0                                                             # initial (open the door) time       [ minutes ]
 STOP = 840.0                                                            # terminal (close the door) time     [ minutes ]
@@ -25,6 +26,7 @@ STEADYLAMBDA = 1.5
 TRANSIENTLAMBDA = 2
 QUEUES = 3                                                              # number of queues in the node
 SERVERS = 6                                                             # number of servers in the node
+CLOSINGSERVERS = 0
 multiqueue = None                                                       # multi queues size-based structure
 X1 = 1.5                                                                # first size boundary                [ minutes ]
 X2 = 4.5                                                                # second size boundary               [ minutes ]
@@ -159,7 +161,6 @@ def FindOne(events):
         i += 1  # has been idle longest
         if events[i].x == 0 and events[i].t < events[s].t:
             s = i
-
     return s
 
 
@@ -308,14 +309,14 @@ def transientStats():
             else:
                 wait[j] = 0
             if index_queues[j] != 0:
-                delay[j] = area_queues[j] / index_queues[j]
+                delay[j] = area_queues[j] / index_queues[j]                
             else:
                 delay[j] = 0
             if t.current != START:
                 queue_population[j] = area_queues[j] / (t.current - START)
             else:
                 queue_population[j] = 0
-
+            
         d = 0.0
 
         for j in range(0, QUEUES):
@@ -365,10 +366,12 @@ def transientStats():
         for s in range(1, SERVERS + 1):
             if t.current != START:
                 transientStatistics["avg_utilization" + str(s)].append(sum[s].service / (t.current - START))
+            '''
             else:
                 transientStatistics["avg_utilization" + str(s)].append(transientStatistics["avg_utilization" + str(s)][
                                                                            len(transientStatistics[
                                                                                    "avg_utilization" + str(s)]) - 1])
+            '''
 
 
 class event:
@@ -376,6 +379,7 @@ class event:
     x = None                                              # event status, 0 or 1
     size = None                                           # size of the incoming job, (if event is an arrival)
     priority = None                                       # from which queue the job has come (if event is a completion)
+    cancel = 0
 
 
 class time:
@@ -441,7 +445,68 @@ def serve():
             b = queue.pop(0)
             return b.size, b.priority
 
-    return -1
+    return -1, -1
+
+
+def updateServers( server_number ):
+
+    global sum, events, SERVERS, CLOSINGSERVERS, number
+
+    if server_number == SERVERS: return 0
+
+    if server_number > SERVERS:
+        surplus = server_number - SERVERS
+        for i in range( 0, surplus ):
+            e = event()
+            e.t = 0.0
+            e.x = 0
+            a = accumSum()
+            a.served = 0
+            a.service = 0.0
+            sum.append(a)
+            SERVERS += 1
+            events.append(e) 
+            if number >= SERVERS: 
+                # schedule the next completion event
+                service, prio = serve()
+                # update the selected server's state
+                s = len(events)-1
+                sum[s].service += service
+                sum[s].served += 1
+                events[s].t = t.current + service
+                events[s].priority = prio
+                events[s].size = service
+                events[s].x = 1
+                # update the services sum for the respective queue
+                number_queues[events[s].priority] -= 1  # decrease the number of jobs in the specific queue 
+        
+
+    else: 
+        
+        CLOSINGSERVERS = SERVERS - server_number
+
+        for j in range(1, SERVERS):
+
+            if CLOSINGSERVERS == 0: break
+            
+            if events[j].x == 0:
+                print("scherzetto")
+                events[j].cancel = 1
+                CLOSINGSERVERS -= 1
+        
+        events = [e for e in events if e.cancel == 0 ]    
+        
+        SERVERS = len( events ) - 1
+            
+
+def cashierClose( server_index ):
+    global events, sum, CLOSINGSERVERS, SERVERS
+    
+    events.pop( server_index )
+    sum.pop( server_index )
+    SERVERS = len(events)-1
+    CLOSINGSERVERS -= 1
+
 
 
 ''' ------------------------------------ Simulation settings ------------------------------------------------------- '''
@@ -560,6 +625,7 @@ for i in range(0, replicas):
     old_index = 0
     batch_index = 0
     transient_index = 0
+    previous_index = 0
 
     while ((events[0].x != 0) or (number != 0)):
 
@@ -579,30 +645,44 @@ for i in range(0, replicas):
                 period += 1
                 setLambda(1.5)
                 LAMBDA = getLambda()
+                updateServers( 4 )
                 resetTransientStatistics()
+                print("fase2")
+               
 
             if choice == 0 and t.current >= 300 and period == 1:
                 period += 1
-                setLambda(2.5)
+                setLambda(2.0)
                 LAMBDA = getLambda()
+                updateServers( 3 )
                 resetTransientStatistics()
-
+                print("fase3")
+                
             if choice == 0 and t.current >= 420 and period == 2:
                 period += 1
-                setLambda(1)
+                setLambda(1.0)
                 LAMBDA = getLambda()
+                updateServers( 6 )
                 resetTransientStatistics()
+                print("fase4")
+                
 
             if choice == 0 and t.current >= 720 and period == 3:
                 period += 1
-                setLambda(3.5)
+                setLambda(3.0)
                 LAMBDA = getLambda()
+                updateServers( 2 )
                 resetTransientStatistics()
+                print("fase5")
+               
 
         disp += 1
-        if (choice == 0 and index % (round(TRANSIENT_INDEX * TRANSIENT_MULTIPLIER)) == 0 and index != 0):
-            transientStats()
+        if (choice == 0 and index % (round(TRANSIENT_INDEX * TRANSIENT_MULTIPLIER)) == 0 and index != 0 and simulationtype == 0):
+            transientStats()   
             TRANSIENT_MULTIPLIER = TRANSIENT_MULTIPLIER * TRANSIENT_INDEX
+        if (choice == 0 and index % (round(8)) == 0 and index != 0 and previous_index !=index and simulationtype == 1):
+            transientStats()           
+            previous_index = index
         # ------------------------------------------------------------------------------------------------------------------------------
 
         e = NextEvent(events)  # next event index
@@ -626,7 +706,7 @@ for i in range(0, replicas):
             events[0].t = arrivalTemp  # get the arrival time
             events[0].size = GetServicePareto()  # get the service time
 
-            if events[0].t > STOP:
+            if events[0].t > 835:
                 # end of observation time
                 events[0].x = 0
 
@@ -640,15 +720,21 @@ for i in range(0, replicas):
                 events[s].t = t.current + service
                 events[s].x = 1
                 events[s].priority = prio
+                events[s].size = service
                 # update the services sum for the respective queue
                 number_queues[events[s].priority] -= 1  # decrease the number of jobs in the specific queue
-                tot_services_for_queue[prio] += service
+                
         else:
             # process a COMPLETION
             s = e
             number -= 1
             index += 1  # increase the number of processed jobs in the node
             index_queues[events[s].priority] += 1  # increase the number of processed jobs in the specific queue
+            tot_services_for_queue[events[s].priority] += events[s].size
+
+            if  CLOSINGSERVERS > 0:
+                cashierClose( s )
+                continue
 
             if (number >= SERVERS):
                 # schedule the next completion event
@@ -658,16 +744,19 @@ for i in range(0, replicas):
                 sum[s].served += 1
                 events[s].t = t.current + service
                 events[s].priority = prio
+                events[s].size = service
                 # update the services sum for the respective queue
-                number_queues[events[s].priority] -= 1  # decrease the number of jobs in the specific queue
-                tot_services_for_queue[prio] += service
+                number_queues[events[s].priority] -= 1  # decrease the number of jobs in the specific queue               
+                
             else:
                 events[s].x = 0
 
+        
+
     # End While
     f.close()
-    # Record simulation results on a header JSON file
 
+    # Record simulation results on a header JSON file
     if choice == 0:
         transientList.append(transientStatistics)
         transientStatistics["seed"] = SIMULATION_SEED
@@ -726,4 +815,7 @@ for i in range(0, replicas):
 if choice == 1:
     steadyStatePlotter(dirName, 0, validation)
 else:
-    transientPlotter(dirName, 0, transientList, simulationtype)
+    #transientPlotter(dirName, 0, transientList, simulationtype)
+    transientPlotter2(dirName, 0, transientList, simulationtype, "wait")
+    transientPlotter2(dirName, 0, transientList, simulationtype, "delay")
+    transientPlotter2(dirName, 0, transientList, simulationtype, "number")

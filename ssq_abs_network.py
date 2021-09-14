@@ -11,7 +11,7 @@
 #  # Latest Revision : 10/08/21
 #  * -------------------------------------------------------------------------------------------------------------------
 
-from statisticsTools import batchMeans, finiteHorizon, steadyStatePlotter, transientPlotter
+from statisticsTools import batchMeans, finiteHorizon, steadyStatePlotter, transientPlotter, transientPlotter2
 from probabilityDistributions import getLambda, setLambda
 from rngs import getSeed, plantSeeds, selectStream
 from serviceCalls import GetServicePareto
@@ -499,6 +499,7 @@ b = 512
 k = 0
 validation = 0
 TRANSIENT_INDEX = 1.2
+previous_index = 0
 
 print(" Which type of simulation do you want to perform?\n")
 print(" Finite Horizon ( Transient Statistics ) ............................. 0")
@@ -612,34 +613,37 @@ for i in range(0, replicas):
 
         if simulationtype == 1:
             # Variation of LAMBDA during the day
-            if choice == 0 and t.current >= 800 and period == 0:
+            if choice == 0 and t.current >= 120 and period == 0:
                 period += 1
                 setLambda(1.5)
                 LAMBDA = getLambda()
                 resetTransientStatistics()
 
-            if choice == 0 and t.current >= 1000 and period == 1:
+            if choice == 0 and t.current >= 300 and period == 1:
                 period += 1
-                setLambda(2.5)
+                setLambda(2.0)
                 LAMBDA = getLambda()
                 resetTransientStatistics()
 
-            if choice == 0 and t.current >= 1500 and period == 2:
+            if choice == 0 and t.current >= 420 and period == 2:
                 period += 1
                 setLambda(1)
                 LAMBDA = getLambda()
                 resetTransientStatistics()
 
-            if choice == 0 and t.current >= 1600 and period == 3:
+            if choice == 0 and t.current >= 700 and period == 3:
                 period += 1
-                setLambda(3.5)
+                setLambda(3.0)
                 LAMBDA = getLambda()
                 resetTransientStatistics()
 
         disp += 1
-        if choice == 0 and index % (round(TRANSIENT_INDEX * TRANSIENT_MULTIPLIER)) == 0 and index != 0:
-            transientStats()
+        if (choice == 0 and index % (round(TRANSIENT_INDEX * TRANSIENT_MULTIPLIER)) == 0 and index != 0 and simulationtype == 0):
+            transientStats()   
             TRANSIENT_MULTIPLIER = TRANSIENT_MULTIPLIER * TRANSIENT_INDEX
+        if (choice == 0 and index % (round(5)) == 0 and index != 0 and previous_index !=index and simulationtype == 1):
+            transientStats()           
+            previous_index = index
         # ------------------------------------------------------------------------------------------------------------------------------
 
         e = NextEvent(events)  # next event index
@@ -658,7 +662,7 @@ for i in range(0, replicas):
 
         if e == 0:
             # process an ARRIVAL
-            events[0].node_position = selectNode(nodes)
+            events[0].node_position = selectNodeUniform(nodes)
             nodes[events[0].node_position].number += 1
             number += 1
 
@@ -739,4 +743,6 @@ for i in range(0, replicas):
 if choice == 1:
     steadyStatePlotter(dirName, 1, validation)
 else:
-    transientPlotter(dirName, 1, transientList, simulationtype)
+    #transientPlotter(dirName, 1, transientList, simulationtype)
+    transientPlotter2(dirName, 1, transientList, simulationtype)
+
