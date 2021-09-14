@@ -17,7 +17,6 @@ from rngs import getSeed, plantSeeds
 from arrivalCalls import GetArrivalExpo
 from serviceCalls import GetServicePareto
 import sys, json, os
-from pprint import pprint
 
 START = 0.0                                                             # initial (open the door) time       [ minutes ]
 STOP = 840.0                                                            # terminal (close the door) time     [ minutes ]
@@ -563,6 +562,7 @@ plantSeeds(0)
 r = 0
 
 for i in range(0, replicas):
+    
     TRANSIENT_MULTIPLIER = 8
     r += 1
 
@@ -706,7 +706,7 @@ for i in range(0, replicas):
             events[0].t = arrivalTemp  # get the arrival time
             events[0].size = GetServicePareto()  # get the service time
 
-            if events[0].t > 835:
+            if events[0].t > STOP:
                 # end of observation time
                 events[0].x = 0
 
